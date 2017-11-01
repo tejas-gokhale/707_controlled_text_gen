@@ -9,13 +9,25 @@ from konlpy.tag import Mecab;tagger=Mecab()
 from collections import Counter
 get_ipython().run_line_magic('matplotlib', 'inline')
 
-
 # * https://arxiv.org/pdf/1703.00955.pdf
+
+train_file = "data/ratings_train.txt"
+
+HIDDEN_SIZE = 300
+LATENT_SIZE = 10
+CODE_SIZE = 2
+BATCH_SIZE = 32
+STEP = 10 #500
+KTA = 0.0
+LEARNING_RATE = 0.001
+
+SEQ_LENGTH=15
+
 
 USE_CUDA = torch.cuda.is_available()
 print("Using CUDA: ", USE_CUDA)
 
-data = open('data/ratings_train.txt','r',encoding='utf-8').readlines()
+data = open(train_file,'r',encoding='utf-8').readlines()
 data = data[1:]
 data = [[d.split('\t')[1],d.split('\t')[2][:-1]] for d in data]
 
@@ -28,9 +40,6 @@ negative = [d for d in data if d[1] =="0"]
 
 
 data = random.sample(positive,1000) + random.sample(negative,1000)
-
-
-SEQ_LENGTH=15
 
 train=[]
 
@@ -91,7 +100,6 @@ for tr in train:
 
 train_data = list(zip(train_x,train_y,code_labels))
 
-
 def getBatch(batch_size,train_data):
     random.shuffle(train_data)
     sindex=0
@@ -105,9 +113,6 @@ def getBatch(batch_size,train_data):
         sindex = temp
         
         yield (x,y,c)
-
-
-
 
 class Encoder(nn.Module):
     def __init__(self, input_size, hidden_size,latent_size=10,n_layers=1):
@@ -139,8 +144,6 @@ class Encoder(nn.Module):
         return z,mu,log_var
 
 
-
-
 class Generator(nn.Module):
     def __init__(self, hidden_size, output_size,latent_size=10,code_size=2, n_layers=1):
         super(Generator, self).__init__()
@@ -158,8 +161,6 @@ class Generator(nn.Module):
         self.out = nn.Linear(self.hidden_size, self.output_size)
         
     def forward(self, input,latent,code,lengths,seq_length,training=True):
-        
-
         embedded = self.embedding(input)
         #embedded = self.dropout(embedded)
        
@@ -184,10 +185,7 @@ class Generator(nn.Module):
         
         return scores.view(input.size(0)*seq_length,-1)
 
-
-
-
-class  Discriminator(nn.Module):
+class Discriminator(nn.Module):
     
     def __init__(self, embed_num,embed_dim,class_num,kernel_num,kernel_sizes,dropout):
         super(Discriminator,self).__init__()
@@ -247,20 +245,7 @@ class  Discriminator(nn.Module):
         return logit
 
 
-
-
-HIDDEN_SIZE = 300
-LATENT_SIZE = 10
-CODE_SIZE = 2
-BATCH_SIZE=32
-STEP=500
-KTA = 0.0
-LEARNING_RATE=0.001
-
-
-
-
-encoder =  Encoder(len(word2index), HIDDEN_SIZE,LATENT_SIZE, 2)
+encoder = Encoder(len(word2index), HIDDEN_SIZE,LATENT_SIZE, 2)
 generator = Generator(HIDDEN_SIZE,len(word2index),LATENT_SIZE,CODE_SIZE)
 discriminator = Discriminator(len(word2index),100,2,30,[3,4,5],0.8)
 if USE_CUDA:
@@ -277,9 +262,6 @@ dis_optiom = torch.optim.Adam(discriminator.parameters(),lr=LEARNING_RATE)
 
 
 # ## 1. Initialize base VAE 
-
-
-
 for step in range(STEP):
     for i,(x,y,c) in enumerate(getBatch(BATCH_SIZE,train_data)):
 
@@ -334,12 +316,8 @@ for step in range(STEP):
                                                                               kld_for_print))
 
 
-
-
 torch.save(generator.state_dict(),'models/generator.pkl')
 torch.save(encoder.state_dict(),'models/encoder.pkl')
-
-
 
 
 generator_input = Variable(torch.LongTensor([[word2index['<SOS>']]*1])).transpose(1,0)

@@ -12,65 +12,27 @@ get_ipython().run_line_magic('matplotlib', 'inline')
 
 # * https://arxiv.org/pdf/1703.00955.pdf
 
-# In[2]:
-
-
-torch.__version__
-
-
-# In[3]:
-
-
 USE_CUDA = torch.cuda.is_available()
+print("Using CUDA: ", USE_CUDA)
 
-
-# In[4]:
-
-
-torch.cuda.is_available()
-
-
-# In[6]:
-
-
-data = open('../dataset/naver_test.txt','r',encoding='utf-8').readlines()
+data = open('data/ratings_train.txt','r',encoding='utf-8').readlines()
 data = data[1:]
 data = [[d.split('\t')[1],d.split('\t')[2][:-1]] for d in data]
 
 
-# In[7]:
-
-
 distibution = [d[1] for d in data]
-
-
-# In[10]:
 
 
 positive = [d for d in data if d[1]=="1"]
 negative = [d for d in data if d[1] =="0"]
 
 
-# In[11]:
-
-
 data = random.sample(positive,1000) + random.sample(negative,1000)
-
-
-# In[12]:
 
 
 SEQ_LENGTH=15
 
-
-# In[13]:
-
-
 train=[]
-
-
-# In[14]:
-
 
 for t in data:
     t0 = t[0]
@@ -89,9 +51,6 @@ for t in data:
     train.append([token0,token0,t[1]])
 
 
-# In[15]:
-
-
 word2index={"<PAD>":0,"<SOS>":1,"<EOS>":2,"<UNK>":3}
 
 for t in train:
@@ -102,9 +61,6 @@ for t in train:
 index2word = {v:k for k,v in word2index.items()}
 
 
-# In[16]:
-
-
 def prepare_sequence(seq, to_ix):
     idxs = list(map(lambda w: to_ix[w] if w in to_ix.keys() else to_ix["<UNK>"], seq))
     tensor = Variable(torch.LongTensor(idxs)).cuda() if USE_CUDA else Variable(torch.LongTensor(idxs))
@@ -112,9 +68,6 @@ def prepare_sequence(seq, to_ix):
 
 
 flatten = lambda l: [item for sublist in l for item in sublist]
-
-
-# In[17]:
 
 
 train_x=[]
@@ -135,13 +88,8 @@ for tr in train:
     code_labels.append(Variable(torch.LongTensor([int(tr[2])])).cuda() if USE_CUDA else Variable(torch.LongTensor([int(tr[2])])))
 
 
-# In[18]:
-
 
 train_data = list(zip(train_x,train_y,code_labels))
-
-
-# In[19]:
 
 
 def getBatch(batch_size,train_data):
@@ -159,7 +107,6 @@ def getBatch(batch_size,train_data):
         yield (x,y,c)
 
 
-# In[20]:
 
 
 class Encoder(nn.Module):
@@ -192,7 +139,6 @@ class Encoder(nn.Module):
         return z,mu,log_var
 
 
-# In[21]:
 
 
 class Generator(nn.Module):
@@ -239,7 +185,6 @@ class Generator(nn.Module):
         return scores.view(input.size(0)*seq_length,-1)
 
 
-# In[22]:
 
 
 class  Discriminator(nn.Module):
@@ -302,7 +247,6 @@ class  Discriminator(nn.Module):
         return logit
 
 
-# In[144]:
 
 
 HIDDEN_SIZE = 300
@@ -314,7 +258,6 @@ KTA = 0.0
 LEARNING_RATE=0.001
 
 
-# In[155]:
 
 
 encoder =  Encoder(len(word2index), HIDDEN_SIZE,LATENT_SIZE, 2)
@@ -335,7 +278,6 @@ dis_optiom = torch.optim.Adam(discriminator.parameters(),lr=LEARNING_RATE)
 
 # ## 1. Initialize base VAE 
 
-# In[156]:
 
 
 for step in range(STEP):
@@ -392,14 +334,12 @@ for step in range(STEP):
                                                                               kld_for_print))
 
 
-# In[147]:
 
 
 torch.save(generator.state_dict(),'models/generator.pkl')
 torch.save(encoder.state_dict(),'models/encoder.pkl')
 
 
-# In[154]:
 
 
 generator_input = Variable(torch.LongTensor([[word2index['<SOS>']]*1])).transpose(1,0)

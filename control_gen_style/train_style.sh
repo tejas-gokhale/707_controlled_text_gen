@@ -22,6 +22,10 @@ disc_filter_nums='100,100,100'
 disc_l2_lambda=0.2
 dropout_keep_prob=0.75
 
+# prior
+prior_mu=0.0
+prior_sigma=2.0
+
 # data
 seq_length=16
 vocab_size=16188
@@ -40,7 +44,7 @@ bow_w=0.2
 recon_dropout_keep_prob=1.
 style_w=0.1
 output_path_prefix="${root_path}/outputs/"
-display_every=-1
+display_every=1
 test_every=-1
 sample_every=-1
 checkpoint_every=-10
@@ -96,4 +100,6 @@ CUDA_VISIBLE_DEVICES=0 python train_style_main.py \
   --pt_nepochs $pt_nepochs \
   --pt_kld_anneal_start_epoch $pt_kld_anneal_start_epoch \
   --pt_kld_anneal_end_epoch $pt_kld_anneal_end_epoch \
-  --pt_restore_epoch $pt_restore_epoch
+  --pt_restore_epoch $pt_restore_epoch \
+  --prior_mu $prior_mu \
+  --prior_sigma $prior_sigma 

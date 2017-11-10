@@ -12,7 +12,7 @@ from tensorflow.contrib.rnn import LSTMStateTuple as lstm_state
 from utils.utils import *
 
 class Gen(object):
-    def __init__(self, config, embeddings):
+    def __init__(self, config, embeddings, prior_mu, prior_sigma):
         self.hidden_dim = config.hidden_dim
         self.z_dim = config.z_dim
         self.c_dim = config.c_dim
@@ -21,6 +21,9 @@ class Gen(object):
         self.batch_size = config.batch_size
         self.vocab_size = config.vocab_size
         self.bow_w = config.bow_w
+
+        self.prior_mu = prior_mu
+        self.prior_sigma = prior_sigma
 
         self.disc_emb_dim = config.disc_emb_dim
         self.disc_filter_sizes = \
@@ -177,7 +180,10 @@ class Gen(object):
             x_oh * tf.log(tf.clip_by_value(prob, 1e-20, 1.0)),
             axis=[1,2]) / x_length
         recon_loss = tf.reduce_mean(recon_loss)
-        kld = - tf.reduce_sum(1. + x_log_sigma - x_mu**2 - tf.exp(x_log_sigma), axis=1) / 2.
+
+
+        kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma))
+        # kld = - tf.reduce_sum(1. + x_log_sigma - x_mu**2 - tf.exp(x_log_sigma), axis=1) / 2. # original std normal KL
         kld = tf.reduce_mean(kld)
 
         recon_loss_word = - tf.reduce_sum(
@@ -399,7 +405,7 @@ class Gen(object):
 
 
     def generate_hidden_code(self, c_values=None):
-        z = tf.random_normal([self.batch_size, self.z_dim], mean=0.0, stddev=1.)
+        z = tf.random_normal([self.batch_size, self.z_dim], mean=self.prior_mu, stddev=self.prior_sigma)
         if c_values is None:
             prob = tf.ones([self.batch_size, self.c_dim]) / self.c_dim
             c_values = tf.squeeze(tf.multinomial(tf.log(prob), 1)) # self.batch_size

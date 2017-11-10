@@ -1,7 +1,7 @@
 
 __author__="zhitingh"
 
-import cPickle
+import _pickle as cPickle
 import numpy as np
 import tensorflow as tf
 #from tensorflow.python.ops import tensor_array_ops, control_flow_ops

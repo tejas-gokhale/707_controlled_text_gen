@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 import random
 import time
-import cPickle
+import _pickle as cPickle
 import os
 import sys
 import uuid
@@ -75,7 +75,7 @@ FLAGS = flags.FLAGS
 
 #os.environ["CUDA_VISIBLE_DEVICES"]=FLAGS.gpu
 from tensorflow.python.client import device_lib
-print device_lib.list_local_devices()
+print (device_lib.list_local_devices())
 
 np.set_printoptions(precision=3)
 pp = pprint.PrettyPrinter()

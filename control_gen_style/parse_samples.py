@@ -2,7 +2,7 @@
 __author__="zhiting"
 
 import numpy as np
-import _pickle as cPickle
+import cPickle
 from collections import defaultdict
 import sys, re
 #import pandas as pd
@@ -44,5 +44,5 @@ if __name__=="__main__":
 
     parse_sentences(data_file, idx_word_map)
 
-    print ("Done.")
+    print "Done."
 

@@ -5,7 +5,7 @@ import math
 from glob import glob
 import numpy as np
 from six.moves import xrange
-import _pickle as cPickle
+import cPickle
 from utils import *
 
 class unlabeled_data_loader(object):

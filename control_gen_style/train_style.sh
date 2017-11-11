@@ -23,6 +23,7 @@ disc_l2_lambda=0.2
 dropout_keep_prob=0.75
 
 # prior
+prior_distr='exponential'
 prior_mu=0.0
 prior_sigma=2.0
 
@@ -101,5 +102,6 @@ CUDA_VISIBLE_DEVICES=0 python train_style_main.py \
   --pt_kld_anneal_start_epoch $pt_kld_anneal_start_epoch \
   --pt_kld_anneal_end_epoch $pt_kld_anneal_end_epoch \
   --pt_restore_epoch $pt_restore_epoch \
+  --prior_distr $prior_distr \
   --prior_mu $prior_mu \
   --prior_sigma $prior_sigma 

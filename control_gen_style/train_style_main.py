@@ -76,6 +76,7 @@ flags.DEFINE_integer('pt_kld_anneal_end_epoch', 2000, '')
 flags.DEFINE_integer('pt_restore_epoch', 0, "..")
 
 # Prior terms
+flags.DEFINE_string('prior_distr', "normal", "")
 flags.DEFINE_float('prior_mu', 0.0, '')
 flags.DEFINE_float('prior_sigma', 1.0, '') # Really sigma^2
 
@@ -135,10 +136,13 @@ def main(_):
     checkpoint_every = transform_to_nbatches(FLAGS.checkpoint_every, num_batches)
 
     # build model
-    model = Gen(FLAGS, word_embeddings, FLAGS.prior_mu, FLAGS.prior_sigma)
-    print("Prior mu", FLAGS.prior_mu)
-    print("Prior sigma", FLAGS.prior_sigma)
-
+    model = Gen(FLAGS, word_embeddings, FLAGS.prior_distr, FLAGS.prior_mu, FLAGS.prior_sigma)
+    print("Prior distribution: ", FLAGS.prior_distr)
+    print("Prior mu: ", FLAGS.prior_mu)
+    print("Prior sigma: ", FLAGS.prior_sigma)
+    logging.info("Prior distribution: {}".format(FLAGS.prior_distr))
+    logging.info("Prior mu: {}".format(FLAGS.prior_mu))
+    logging.info("Prior sigma: {}".format(FLAGS.prior_sigma))
     #
     step = 0
     with tf.Session() as sess:

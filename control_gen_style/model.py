@@ -12,7 +12,7 @@ from tensorflow.contrib.rnn import LSTMStateTuple as lstm_state
 from utils.utils import *
 
 class Gen(object):
-    def __init__(self, config, embeddings, prior_mu, prior_sigma):
+    def __init__(self, config, embeddings, prior_distr, prior_mu, prior_sigma):
         self.hidden_dim = config.hidden_dim
         self.z_dim = config.z_dim
         self.c_dim = config.c_dim
@@ -22,6 +22,7 @@ class Gen(object):
         self.vocab_size = config.vocab_size
         self.bow_w = config.bow_w
 
+        self.prior_distr = prior_distr
         self.prior_mu = prior_mu
         self.prior_sigma = prior_sigma
 
@@ -182,8 +183,16 @@ class Gen(object):
         recon_loss = tf.reduce_mean(recon_loss)
 
 
-        kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma))
+        
         # kld = - tf.reduce_sum(1. + x_log_sigma - x_mu**2 - tf.exp(x_log_sigma), axis=1) / 2. # original std normal KL
+
+        if self.prior_distr is "normal":
+            kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma))
+        elif self.prior_distr == "exponential":
+            kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)) + tf.log(self.prior_mu) + \
+                1 - tf.log(x_mu))
+        else:
+            raise Exception("not a real distribution")
         kld = tf.reduce_mean(kld)
 
         recon_loss_word = - tf.reduce_sum(

@@ -172,6 +172,7 @@ def main(_):
         # arbitrary values
         c = np.ones([FLAGS.batch_size, FLAGS.c_dim]) / FLAGS.c_dim
         for e in xrange(FLAGS.nepochs):
+            print("Epoch {}".format(e))
             for b in xrange(num_batches):
                 step = e * num_batches + b
                 if step < FLAGS.restore_start_step:

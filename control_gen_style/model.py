@@ -191,6 +191,10 @@ class Gen(object):
         elif self.prior_distr == "exponential":
             kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)) + tf.log(self.prior_mu) + \
                 1 - tf.log(x_mu))
+        elif self.prior_distr == "beta":
+            kld = - tf.reduce_sum(tf.log(self.prior_mu) - tf.log(self.prior_sigma) - tf.log(x_mu) 
+                + x_log_sigma + (self.prior_sigma - tf.exp(x_log_sigma)) * 
+                (tf.digamma(self.prior_sigma) + tf.digamma(self.prior_mu))) 
         else:
             raise Exception("not a real distribution")
         kld = tf.reduce_mean(kld)

@@ -22,7 +22,7 @@ disc_filter_nums='100,100,100'
 disc_l2_lambda=0.2
 dropout_keep_prob=0.75
 
-# prior
+# prior: normal, exponential, beta
 prior_distr='exponential'
 prior_mu=0.0
 prior_sigma=2.0

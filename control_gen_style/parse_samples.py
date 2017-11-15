@@ -35,7 +35,7 @@ def get_reverse_word_idx_map(word_idx_map):
 
 if __name__=="__main__":
     data_file = sys.argv[1]
-    word_idx_map_pkl_file = '../../data_imdb/imdb.data.binary.p.0.01.l16'
+    word_idx_map_pkl_file = 'data/imdb.data.binary.p.0.01.l16'
 
     x = cPickle.load(open(word_idx_map_pkl_file,"rb"))
     _, _, _, word_idx_map, _ = x[0], x[1], x[2], x[3], x[4]

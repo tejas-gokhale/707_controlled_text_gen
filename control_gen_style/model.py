@@ -173,6 +173,7 @@ class Gen(object):
     def build_reconstruct_loss(self, h, x_mu, x_log_sigma, x, x_ind, x_oh, x_emb, reuse=False):
         s = self.gen_init_state_unit(h)
 
+
         # batch_size x seq_length x vocab_size
         _, prob, x_length = self.reconstruct( \
             x, x_ind, x_emb, s, dropout_keep_prob=self.recon_dropout_keep_prob, reuse=reuse)
@@ -182,15 +183,31 @@ class Gen(object):
             axis=[1,2]) / x_length
         recon_loss = tf.reduce_mean(recon_loss)
 
+        sess = tf.InteractiveSession()
+
 
         
         # kld = - tf.reduce_sum(1. + x_log_sigma - x_mu**2 - tf.exp(x_log_sigma), axis=1) / 2. # original std normal KL
-
+        EPS = 1e-9
         if self.prior_distr == "normal":
             kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma))
         elif self.prior_distr == "exponential":
-            kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)) + tf.log(self.prior_mu) + \
-                1 - tf.log(x_mu))
+            tf.Print(kld, [kld], "Hello with kld")
+
+            print("First two terms: ")
+            logging.info("First two terms: ")
+            tf.Print(x_log_sigma, [tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)))], "First two terms")
+
+            print("Next term: ")   
+            print(sess.run(tf.reduce_sum(tf.log(self.prior_mu))))
+
+            print("Last term: ")
+            print(sess.run(tf.reduce_sum(1 - tf.log(x_mu))))
+
+   
+
+            kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / (x_mu + EPS))) + tf.log(self.prior_mu) + \
+                1 - tf.log(x_mu + EPS))
         elif self.prior_distr == "beta":
             kld = - tf.reduce_sum(tf.log(self.prior_mu) - tf.log(self.prior_sigma) - tf.log(x_mu) 
                 + x_log_sigma + (self.prior_sigma - tf.exp(x_log_sigma)) * 
@@ -198,6 +215,7 @@ class Gen(object):
         else:
             raise Exception("not a real distribution")
         kld = tf.reduce_mean(kld)
+
 
         recon_loss_word = - tf.reduce_sum(
             x_oh * tf.log(tf.clip_by_value(prob, 1e-20, 1.0)),

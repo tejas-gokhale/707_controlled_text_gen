@@ -24,7 +24,7 @@ dropout_keep_prob=0.75
 
 # prior: normal, exponential, beta
 prior_distr='exponential'
-prior_mu=0.0
+prior_mu=1.0
 prior_sigma=2.0
 
 # data

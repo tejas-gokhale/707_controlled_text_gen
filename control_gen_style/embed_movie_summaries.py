@@ -27,7 +27,7 @@ def main():
   vocab_cts = Counter()
   genres = None
 
-  with open('../summaries_genre_short.txt', errors='ignore') as in_file:
+  with open('../summaries_genre.txt', errors='ignore') as in_file:
     for line in in_file:
       matches = re.match(LINE_PAT, line.rstrip())      
       genre_cts += Counter(list(map(get_genre, matches.group(2).split(', '))))

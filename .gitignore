@@ -2,3 +2,5 @@
 control_gen_style/data
 control_gen_style/example_models
 control_gen_style/outputs
+control_gen_style/mult_hot_out
+summaries_genre_short.txt

@@ -61,22 +61,35 @@ class unlabeled_data_loader(object):
 
 
 class labeled_data_loader(object):
-    def __init__(self, data_path, batch_size, y_dim):
+    valid_hots = set(['one', 'mult'])
+    def __init__(self, data_path, batch_size, y_dim, hot='one'):
         self.data_path = data_path
         self.batch_size = batch_size
         self.y_dim = y_dim
+        
+        if hot not in valid_hots:
+            raise ValueError('Invalid value for hot: must be \'one\' or \'mult\'.')
+        else:
+            self.hot = hot
         self.load()
 
     def load(self):
-        self.trX, self.trY, self.teX, self.teY = self.read(self.data_path)
+        self.trX, self.trY, self.teX, self.teY = self.read(self.data_path, self.hot)
 
         shuffle_indices = np.random.permutation(np.arange(len(self.trX)))
         self.trX = self.trX[shuffle_indices]
         self.trY = self.trY[shuffle_indices]
 
-        self.trY = one_hot_code(self.trY, self.y_dim)
+        code_fun = None
+
+        if self.hot == 'one':
+            code_fun = one_hot_code
+        elif self.hot == 'mult':
+            code_fun = mult_hot_code    
+
+        self.trY = code_fun(self.trY, self.y_dim)
         self.trY = np.array(self.trY, dtype=np.int32)
-        self.teY = one_hot_code(self.teY, self.y_dim)
+        self.teY = code_fun(self.teY, self.y_dim)
         self.teY = np.array(self.teY, dtype=np.int32)
 
         self.trX_batches, self.trY_batches, self.num_batches = \
@@ -87,7 +100,7 @@ class labeled_data_loader(object):
         print("#train batches %d" % self.num_batches)
         print("#test %d" % len(self.teX))
 
-    def read(self, data_path):
+    def read_one_hot(self, data_path):
         trX, trY = [], []
         with open(os.path.join(data_path,'train.txt'), 'r') as f:
             for line in f:
@@ -107,6 +120,33 @@ class labeled_data_loader(object):
         teX = np.array(teX)
         teY = np.array(teY)
         return trX, trY, teX, teY
+
+    def read_mult_hot(self, data_path):
+        trX, trY = [], []
+        with open(os.path.join(data_path,'train.txt'), 'r') as f:
+            for line in f:
+                line = line.strip().split(',')
+                trY.append([int(w) for w in line[0].split()])
+                trX.append([int(w) for w in line[1].split()])
+        teX, teY = [], []
+        with open(os.path.join(data_path,'test.txt'), 'r') as f:
+            for line in f:
+                line = line.strip().split(',')
+                trY.append([int(w) for w in line[0].split()])
+                trX.append([int(w) for w in line[1].split()])
+        trX = np.array(trX)
+        trY = np.array(trY)
+        teX = np.array(teX)
+        teY = np.array(teY)
+        return trX, trY, teX, teY
+
+
+    def read(self, data_path, hot):
+        if hot == 'one':
+            return self.read_one_hot(data_path)
+        elif hot == 'mult':
+            return self.read_mult_hot(data_path)
+            
 
 
     def train_batch_iter(self, num_epochs, pad=True):
@@ -179,11 +219,21 @@ def create_batches(x, y=None, batch_size=256, pad=False):
     else:
         return x_batch_sequence, num_batches
 
+
 def one_hot_code(y, y_dim):
     y_vec = np.zeros((len(y), y_dim))
     for i, label in enumerate(y_vec):
         y_vec[i,y[i]] = 1
     return y_vec
+
+
+def mult_hot_code(y, y_dim):
+    y_vec = np.zeros((len(y), y_dim))
+    for i, label in enumerate(y_vec):
+        for idx in y[i]:
+            y_vec[i, idx] = 1
+    return y_vec
+
 
 def load_word_embddings(path):
     _, _, word_embeddings, _, _ = cPickle.load(open(path, "rb"))

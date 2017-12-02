@@ -3,7 +3,7 @@ from nltk.tokenize import word_tokenize
 import re
 from pickle import dump
 
-LINE_PAT = re.compile(r'[0-9]*[ \t](.*)[ \t]\{(.*)\}\Z')
+LINE_PAT = re.compile(r'[0-9]*[ \t](.*)[ \t]{(.*)}\Z')
 QUOTE_PAT = re.compile(r'"(.*)"')
 GENRE_CT = 10
 VOCAB_CT = 16188
@@ -12,9 +12,14 @@ END_TOK = '<END>'
 UNK_TOK = '<UNK>'
 
 DIR_NAME = 'mult_hot_out/'
+DATA_FILE_PATH = '../summaries_genre.txt'
+TEST_DATA_FILE_PATH = '../summaries_genre_short.txt'
 
 
-def main():
+def main(test=False):
+
+    data_path = DATA_FILE_PATH if not test else TEST_DATA_FILE_PATH
+
     def get_genre(item):
         prelim = item.split(': ')
         if len(prelim) < 2:
@@ -26,9 +31,8 @@ def main():
 
     genre_cts = Counter()
     vocab_cts = Counter()
-    genres = None
 
-    with open('../summaries_genre.txt', errors='ignore') as in_file:
+    with open(data_path, errors='ignore') as in_file:
         for line in in_file:
             matches = re.match(LINE_PAT, line.rstrip())
             genre_cts += Counter(list(map(get_genre, matches.group(2).split(', '))))
@@ -38,22 +42,33 @@ def main():
 
         in_file.seek(0)
 
+        for line in in_file:
+            matches = re.match(LINE_PAT, line.rstrip())
+            cur_genres = frozenset(map(get_genre, matches.group(2).split(', ')))
+            if not cur_genres.isdisjoint(genres):
+                vocab_cts += Counter(word_tokenize(matches.group(1).lower()))
+
+        vocab = vocab_cts.most_common(VOCAB_CT - 3)
+        print(vocab[:50])
+        vocab2idx = {word: idx for idx, (word, _) in enumerate(vocab)}
+        length = len(vocab2idx)
+        vocab2idx[START_TOK] = length
+        vocab2idx[END_TOK] = length + 1
+        vocab2idx[UNK_TOK] = length + 2
+
+
+        in_file.seek(0)
+
         with open(DIR_NAME + 'truncated_summaries_genre.txt', 'w') as trunc_file:
             for line in in_file:
-                matches = re.match(LINE_PAT, line.rstrip())
-                cur_genres = frozenset(map(get_genre, matches.group(2).split(', ')))
-                if not cur_genres.isdisjoint(genres):
-                    vocab_cts += Counter(word_tokenize(matches.group(1).lower()))
-                    trunc_file.write(line)
+                line = list(map(lambda x: x if x in vocab2idx else UNK_TOK, word_tokenize(line.lower())))
+                trunc_file.write(' '.join(line))
 
-    vocab = vocab_cts.most_common(VOCAB_CT - 3)
-    print(vocab[:50])
+    with open(DIR_NAME + 'truncated_summaries_genre.txt', 'w') as trunc_file:
+        for line in in_file:
+            line = list(map(lambda x: x if x in vocab2idx else UNK_TOK, word_tokenize(line.lower())))
+            trunc_file.write(' '.join(line))
 
-    vocab2idx = {word: idx for idx, (word, _) in enumerate(vocab)}
-    length = len(vocab2idx)
-    vocab2idx[START_TOK] = length
-    vocab2idx[END_TOK] = length + 1
-    vocab2idx[UNK_TOK] = length + 2
 
     genre2idx = {genre: idx for idx, genre in enumerate(genres)}
 
@@ -82,4 +97,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(True)

@@ -23,9 +23,9 @@ disc_l2_lambda=0.2
 dropout_keep_prob=0.75
 
 # prior: normal, exponential, beta
-prior_distr='exponential'
+prior_distr='normal'
 prior_mu=0.0
-prior_sigma=2.0
+prior_sigma=1.0
 
 # data
 seq_length=16
@@ -60,7 +60,7 @@ pt_restore_epoch=0 # dumb
 
 name="ctrl_${mode}"
 
-CUDA_VISIBLE_DEVICES=0 python train_style_main.py \
+python train_style_main.py \
   --name $name \
   --mode $mode \
   --hidden_dim $hidden_dim \

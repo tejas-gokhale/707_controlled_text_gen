@@ -33,7 +33,7 @@ u_gen_w=0.1
 u_disc_w=0.1
 bow_w=0.2
 recon_dropout_keep_prob=1.
-output_path_prefix="${root_path}/mult_hot_out/outputs/"
+output_path_prefix="${root_path}mult_hot_out/outputs/"
 display_every=-10 #-1
 test_every=-100 #-5
 sample_every=-100 #-10
@@ -46,7 +46,7 @@ pt_restore_epoch=0
 
 name="ctrl_${mode}"
 
-CUDA_VISIBLE_DEVICES=0 python pretrain_vae_main.py \
+python pretrain_vae_main.py \
   --name $name \
   --mode $mode \
   --hidden_dim $hidden_dim \

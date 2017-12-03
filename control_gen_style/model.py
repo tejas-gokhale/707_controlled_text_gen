@@ -12,7 +12,7 @@ from tensorflow.contrib.rnn import LSTMStateTuple as lstm_state
 from utils.utils import *
 
 class Gen(object):
-    def __init__(self, config, embeddings, prior_distr, prior_mu, prior_sigma):
+    def __init__(self, config, embeddings, prior_distr='normal', prior_mu='0.0', prior_sigma='1.0', hot='one'):
         self.hidden_dim = config.hidden_dim
         self.z_dim = config.z_dim
         self.c_dim = config.c_dim
@@ -21,6 +21,7 @@ class Gen(object):
         self.batch_size = config.batch_size
         self.vocab_size = config.vocab_size
         self.bow_w = config.bow_w
+        self.hot = hot
 
         self.prior_distr = prior_distr
         self.prior_mu = prior_mu
@@ -393,7 +394,6 @@ class Gen(object):
         #x_mu_h_pt = tf.concat([x_mu, self.c], 1)
         #x_mu_s_pt = self.gen_init_state_unit(x_mu_h_pt)
         #gen_x_mu, _ = self.generate(x_mu_s_pt, temp_g=temp_g)
-
         ## edit
         #x_mu_h_pt = tf.concat([x_mu, 1.-self.c], 1)
         #x_mu_s_pt = self.gen_init_state_unit(x_mu_h_pt)
@@ -925,13 +925,23 @@ class Gen(object):
 
             # CalculateMean cross-entropy loss
             with tf.name_scope("loss"):
-                loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
-                    logits=logits, labels=tf.to_float(y))) + self.disc_l2_lambda * l2_loss
+                loss = None
+                if self.hot == 'one':
+                    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\
+                        logits=logits, labels=tf.to_float(y))) + self.disc_l2_lambda * l2_loss
+                elif self.hot == 'mult':
+                    loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits( \
+                        logits=logits, labels=tf.to_float(y))) + self.disc_l2_lambda * l2_loss
 
             # Accuracy
             with tf.name_scope("accuracy"):
-                correct_preds = tf.equal(pred, tf.argmax(y, 1))
-                accu = tf.reduce_mean(tf.cast(correct_preds, "float"), name="accu")
+                accu = None
+                if self.hot == 'one':
+                    correct_preds = tf.equal(pred, tf.argmax(y, 1))
+                    accu = tf.reduce_mean(tf.cast(correct_preds, "float"), name="accu")
+                elif self.hot == 'mult':
+                    correct_preds = tf.equal(tf.round(tf.nn.sigmoid(pred)), tf.round(y))
+                    accu = tf.reduce_mean(tf.cast(correct_preds, "float"), name="accu")
 
             return prob, pred, loss, accu
 

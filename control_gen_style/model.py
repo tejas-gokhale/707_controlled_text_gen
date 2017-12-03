@@ -4,6 +4,7 @@ __author__="zhitingh"
 import cPickle
 import numpy as np
 import tensorflow as tf
+from tensorflow.contrib.distributions import Exponential 
 #from tensorflow.python.ops import tensor_array_ops, control_flow_ops
 #import tf.contrib.rnn as rnn
 from tensorflow.contrib.rnn import BasicLSTMCell as lstm_cell
@@ -192,22 +193,15 @@ class Gen(object):
         if self.prior_distr == "normal":
             kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma))
         elif self.prior_distr == "exponential":
-            tf.Print(kld, [kld], "Hello with kld")
+            
+            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)))], "First two terms")
 
-            print("First two terms: ")
-            logging.info("First two terms: ")
-            tf.Print(x_log_sigma, [tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)))], "First two terms")
-
-            print("Next term: ")   
-            print(sess.run(tf.reduce_sum(tf.log(self.prior_mu))))
-
-            print("Last term: ")
-            print(sess.run(tf.reduce_sum(1 - tf.log(x_mu))))
-
-   
+            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(tf.log(x_mu + EPS))], "Last term")
 
             kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / (x_mu + EPS))) + tf.log(self.prior_mu) + \
                 1 - tf.log(x_mu + EPS))
+
+            tf.Print(kld, [kld], "Hello with kld")
         elif self.prior_distr == "beta":
             kld = - tf.reduce_sum(tf.log(self.prior_mu) - tf.log(self.prior_sigma) - tf.log(x_mu) 
                 + x_log_sigma + (self.prior_sigma - tf.exp(x_log_sigma)) * 
@@ -436,7 +430,22 @@ class Gen(object):
 
 
     def generate_hidden_code(self, c_values=None):
-        z = tf.random_normal([self.batch_size, self.z_dim], mean=self.prior_mu, stddev=self.prior_sigma)
+
+        if self.prior_distr == "normal":
+            z = tf.random_normal([self.batch_size, self.z_dim], mean=self.prior_mu, stddev=self.prior_sigma)
+        elif self.prior_distr == "exponential":
+            rate = 1 / self.prior_mu 
+            # self.prior_sigma is ignored here (only using 1 parameter exponential)
+            exp_distr = tf.contrib.distributions.Exponential(rate)
+            z = exp_distr.sample(sample_shape=([self.batch_size, self.z_dim]))
+        elif self.prior_distr == "beta":
+            beta_distr = tf.contrib.distributions.Beta(self.prior_mu, self.prior_sigma)
+            z = beta_distr.sample(sample_shape=([self.batch_size, self.z_dim]))
+        else:
+            raise Exception("Invalid distribution")
+
+        assert(z.shape == [self.batch_size, self.z_dim])
+
         if c_values is None:
             prob = tf.ones([self.batch_size, self.c_dim]) / self.c_dim
             c_values = tf.squeeze(tf.multinomial(tf.log(prob), 1)) # self.batch_size

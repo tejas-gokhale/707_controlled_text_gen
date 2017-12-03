@@ -131,7 +131,7 @@ def main(_):
 
     #
     step = 0
-    with tf.Session() as sess:
+    with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
         print("Start running ...")
         logging.info("Start running ...")
 

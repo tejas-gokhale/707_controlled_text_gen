@@ -2,9 +2,9 @@
 
 # generic options
 mode='pretrain_disc'
-restore_ckpt_path='/'
+restore_ckpt_path='./mult_hot_out/models/disc/'
+restore_vars_path='./mult_hot_out/models/disc/'
 restore_start_step=0
-restore_vars_path='/'
 #
 root_path='./'
 

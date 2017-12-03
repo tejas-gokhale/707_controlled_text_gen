@@ -2,8 +2,8 @@
 
 # generic options
 mode='pretrain_vae'
-restore_ckpt_path='/'
-restore_vars_path='/'
+restore_ckpt_path='./mult_hot_out/models/vae/'
+restore_vars_path='./mult_hot_out/models/vae/'
 restore_start_step=0
 #
 root_path='./'
@@ -12,14 +12,14 @@ root_path='./'
 hidden_dim=300
 emb_dim=300
 disc_emb_dim=$emb_dim
-c_dim=2
-z_dim=50 #TODO
+c_dim=10
+z_dim=300 #TODO
 disc_filter_sizes='3,4,5'
 disc_filter_nums='100,100,100'
 disc_l2_lambda=0.2
 
 # data
-seq_length=16
+seq_length=40
 vocab_size=16188
 bos_token=0
 eos_token=$((vocab_size-1))

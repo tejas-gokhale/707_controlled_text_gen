@@ -1,5 +1,6 @@
 from collections import Counter
 from nltk.tokenize import word_tokenize, sent_tokenize
+from pprint import pprint
 import random
 import re
 from cPickle import dump, load
@@ -19,6 +20,7 @@ REF_VOCAB_PATH = 'refs/ref_vocab.dict'
 
 TRAIN_PCT = 0.99
 PAD = 40
+
 
 def main(test=False):
 
@@ -47,6 +49,7 @@ def main(test=False):
         genres = frozenset(map(lambda x: x[0], genres))
 
         in_file.seek(0)
+        tmp_genre = {k: [0, 0] for k in genres}
         with open(DIR_NAME + 'truncated_summaries_genre.txt', 'w') as trunc_file:
             for line in in_file:
                 line = line.decode('utf-8', 'ignore')
@@ -54,11 +57,18 @@ def main(test=False):
                 matches = re.match(LINE_PAT, line.rstrip())
                 cur_genres = frozenset(map(get_genre, matches.group(3).split(', ')))
                 if not cur_genres.isdisjoint(genres):
+                    intersect = cur_genres.intersection(genres)
+                    for k in intersect:
+                        tmp_genre[k][0] += 1
                     sentences = sent_tokenize(matches.group(2))
                     for sentence in sentences:
                         if len(word_tokenize(sentence)) <= PAD:
+                            for k in intersect:
+                                tmp_genre[k][1] += 1
                             trunc_file.write(matches.group(1) + '\t' + sentence + '\t{' + matches.group(3) + '}\n')
                             line_ct += 1
+        print('Genre summary and line counts:')
+        pprint(tmp_genre)
 
     genre2idx = {genre: idx for idx, genre in enumerate(genres)}
 
@@ -106,4 +116,4 @@ def main(test=False):
 
 
 if __name__ == '__main__':
-    main()
+    main(True)

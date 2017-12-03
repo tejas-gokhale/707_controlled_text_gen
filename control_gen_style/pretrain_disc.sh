@@ -34,19 +34,19 @@ dics_lr=0.001
 u_gen_w=0.1
 u_disc_w=0.1
 output_path_prefix="${root_path}mult_hot_out/outputs"
-display_every=-1
+display_every=800
 test_every=-1
 sample_every=-10 # dumb
 checkpoint_every=-5
 # pre-train
-pt_nepochs=2
+pt_nepochs=60
 pt_kld_anneal_start_epoch=20 # dumb
 pt_kld_anneal_end_epoch=2000 # dumb
 pt_restore_epoch=0
 
 name="ctrl_${mode}"
 
-python pretrain_disc_main.py \
+TZ=US/Eastern python pretrain_disc_main.py \
   --name $name \
   --mode $mode \
   --hidden_dim $hidden_dim \

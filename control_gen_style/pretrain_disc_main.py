@@ -13,6 +13,7 @@ import uuid
 import logging
 import shutil
 import pprint
+import time
 
 from model import Gen
 from utils.reader import *
@@ -155,7 +156,15 @@ def main(_):
         #    FLAGS.pt_kld_anneal_end_epoch * data_loader.num_batches,
         #    0., 1.)
         #c = np.ones([FLAGS.batch_size, FLAGS.c_dim]) / FLAGS.c_dim
+        prev_time = time.time()
+        cur_time = time.time()
+        time.tzset()
         for e in xrange(FLAGS.pt_restore_epoch, FLAGS.pt_nepochs):
+            prev_time = cur_time
+            cur_time = time.time()
+            msg = 'Epoch ' + str(e) + ': at ' + time.strftime('%H:%M:%S', time.localtime(cur_time))
+            print(msg)
+            logging.info(msg)
             for b in xrange(s_data_loader.num_batches):
                 step = e * s_data_loader.num_batches + b
                 if step < FLAGS.restore_start_step:
@@ -183,7 +192,11 @@ def main(_):
                     except:
                         print("Checkpoint error ..")
                         logging.info("Checkpoint error ..")
-
+            prev_time = cur_time
+            cur_time = time.time()
+            diff_msg = 'Epoch ' + str(e) + ': took ' + time.strftime('%H:%M:%S', time.gmtime(cur_time - prev_time))
+            print(diff_msg)
+            logging.info(diff_msg)
         try:
             saver.save(sess, checkpoint_path, global_step=step)
             print("snapshot to %s %d" % (checkpoint_path,step))

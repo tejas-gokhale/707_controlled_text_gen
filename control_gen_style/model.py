@@ -12,7 +12,7 @@ from tensorflow.contrib.rnn import LSTMStateTuple as lstm_state
 from utils.utils import *
 
 class Gen(object):
-    def __init__(self, config, embeddings, prior_distr='normal', prior_mu='0.0', prior_sigma='1.0', hot='one'):
+    def __init__(self, config, embeddings, prior_distr='normal', prior_mu=0.0, prior_sigma=1.0, hot='one'):
         self.hidden_dim = config.hidden_dim
         self.z_dim = config.z_dim
         self.c_dim = config.c_dim
@@ -184,7 +184,7 @@ class Gen(object):
         recon_loss = tf.reduce_mean(recon_loss)
 
 
-        
+
         # kld = - tf.reduce_sum(1. + x_log_sigma - x_mu**2 - tf.exp(x_log_sigma), axis=1) / 2. # original std normal KL
 
         if self.prior_distr == "normal":
@@ -193,9 +193,9 @@ class Gen(object):
             kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)) + tf.log(self.prior_mu) + \
                 1 - tf.log(x_mu))
         elif self.prior_distr == "beta":
-            kld = - tf.reduce_sum(tf.log(self.prior_mu) - tf.log(self.prior_sigma) - tf.log(x_mu) 
-                + x_log_sigma + (self.prior_sigma - tf.exp(x_log_sigma)) * 
-                (tf.digamma(self.prior_sigma) + tf.digamma(self.prior_mu))) 
+            kld = - tf.reduce_sum(tf.log(self.prior_mu) - tf.log(self.prior_sigma) - tf.log(x_mu)
+                + x_log_sigma + (self.prior_sigma - tf.exp(x_log_sigma)) *
+                (tf.digamma(self.prior_sigma) + tf.digamma(self.prior_mu)))
         else:
             raise Exception("not a real distribution")
         kld = tf.reduce_mean(kld)
@@ -940,7 +940,7 @@ class Gen(object):
                     correct_preds = tf.equal(pred, tf.argmax(y, 1))
                     accu = tf.reduce_mean(tf.cast(correct_preds, "float"), name="accu")
                 elif self.hot == 'mult':
-                    correct_preds = tf.equal(tf.round(tf.nn.sigmoid(pred)), tf.round(y))
+                    correct_preds = tf.equal(tf.round(tf.nn.sigmoid(logits)), tf.round(y))
                     accu = tf.reduce_mean(tf.cast(correct_preds, "float"), name="accu")
 
             return prob, pred, loss, accu

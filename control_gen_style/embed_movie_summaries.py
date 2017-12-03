@@ -1,9 +1,10 @@
 from collections import Counter
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize, sent_tokenize
+import random
 import re
 from cPickle import dump, load
 
-LINE_PAT = re.compile(r'[0-9]*[ \t](.*)[ \t]{(.*)}\Z')
+LINE_PAT = re.compile(r'([0-9])*[ \t](.*)[ \t]{(.*)}\Z')
 QUOTE_PAT = re.compile(r'"(.*)"')
 GENRE_CT = 10
 VOCAB_CT = 16188
@@ -16,6 +17,8 @@ DATA_FILE_PATH = '../summaries_genre.txt'
 TEST_DATA_FILE_PATH = '../summaries_genre_short.txt'
 REF_VOCAB_PATH = 'refs/ref_vocab.dict'
 
+TRAIN_PCT = 0.99
+PAD = 40
 
 def main(test=False):
 
@@ -33,11 +36,12 @@ def main(test=False):
     genre_cts = Counter()
     genres = None
 
+    line_ct = 0
     with open(data_path) as in_file:
         for line in in_file:
             line = line.decode('utf-8', 'ignore')
             matches = re.match(LINE_PAT, line.rstrip())
-            genre_cts += Counter(list(map(get_genre, matches.group(2).split(', '))))
+            genre_cts += Counter(list(map(get_genre, matches.group(3).split(', '))))
         genres = genre_cts.most_common(GENRE_CT)
         print(genres)
         genres = frozenset(map(lambda x: x[0], genres))
@@ -48,37 +52,52 @@ def main(test=False):
                 line = line.decode('utf-8', 'ignore')
                 line = line.encode('ascii', 'ignore')
                 matches = re.match(LINE_PAT, line.rstrip())
-                cur_genres = frozenset(map(get_genre, matches.group(2).split(', ')))
+                cur_genres = frozenset(map(get_genre, matches.group(3).split(', ')))
                 if not cur_genres.isdisjoint(genres):
-                    trunc_file.write(line)
-
-
+                    sentences = sent_tokenize(matches.group(2))
+                    for sentence in sentences:
+                        if len(word_tokenize(sentence)) <= PAD:
+                            trunc_file.write(matches.group(1) + '\t' + sentence + '\t{' + matches.group(3) + '}\n')
+                            line_ct += 1
 
     genre2idx = {genre: idx for idx, genre in enumerate(genres)}
-
 
     vocab2idx = None
     with open(REF_VOCAB_PATH, 'rb') as ref_file:
         vocab2idx = load(ref_file)
 
-
     with open(DIR_NAME + 'truncated_summaries_genre.txt') as in_file:
-        with open(DIR_NAME + 'summaries_genre_embed.txt', 'w') as out_file:
+        with open(DIR_NAME + 'vae_data/train.txt', 'w') as vtr, \
+                open(DIR_NAME + 'vae_data/test.txt', 'w') as vte, \
+                open(DIR_NAME + 'disc_data/train.txt', 'w') as dtr, \
+                open(DIR_NAME + 'disc_data/test.txt', 'w') as dte:
             def embed(token):
                 if token in vocab2idx:
                     return str(vocab2idx[token])
                 else:
                     return str(vocab2idx[UNK_TOK])
-
+            randbits = [True for x in range(int(0.99 * line_ct))] + \
+                [False for x in range(line_ct - int(0.99 * line_ct))]
+            counter = 0
             for line in in_file:
                 matches = re.match(LINE_PAT, line.rstrip())
-                cur_genres = set(map(get_genre, matches.group(2).split(', '))) & genres
+                cur_genres = set(map(get_genre, matches.group(3).split(', '))) & genres
                 emb_genres = sorted(list(map(lambda x: genre2idx[x], cur_genres)))
                 emb_genres = list(map(str, emb_genres))
 
-                tokens = word_tokenize(matches.group(1).rstrip().lower())
-                emb_tokens = [str(START_IDX)] + list(map(embed, tokens)) + [str(END_IDX)]
-                out_file.write(' '.join(emb_genres) + ',' + ' '.join(emb_tokens) + '\n')
+                tokens = word_tokenize(matches.group(2).rstrip().lower())
+                emb_tokens = list(map(embed, tokens))
+                emb_tokens = emb_tokens + [str(END_IDX) for x in range(PAD - len(emb_tokens))]
+
+                disc_out = dtr
+                vae_out = vtr
+                if not randbits[counter]:
+                    disc_out = dte
+                    vae_out = vte
+
+                counter += 1
+                disc_out.write(' '.join(emb_genres) + ',' + ' '.join(emb_tokens) + '\n')
+                vae_out.write(' '.join(emb_tokens) + '\n')
 
     with open(DIR_NAME + 'vocab.dict', 'wb') as vocab_f:
         dump(vocab2idx, vocab_f)

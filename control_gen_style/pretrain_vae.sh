@@ -23,7 +23,7 @@ seq_length=16
 vocab_size=16188
 bos_token=0
 eos_token=$((vocab_size-1))
-data_path="./data/"
+data_path="./mult_hot_out/vae_data/"
 embedding_path='./data/imdb.data.binary.p.0.01.l16'
 
 # training
@@ -33,7 +33,7 @@ u_gen_w=0.1
 u_disc_w=0.1
 bow_w=0.2
 recon_dropout_keep_prob=1.
-output_path_prefix="${root_path}/outputs/"
+output_path_prefix="${root_path}/mult_hot_out/outputs/"
 display_every=-10 #-1
 test_every=-100 #-5
 sample_every=-100 #-10

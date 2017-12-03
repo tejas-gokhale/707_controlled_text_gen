@@ -24,15 +24,16 @@ seq_length=16
 vocab_size=16188
 bos_token=0
 eos_token=$((vocab_size-1))
-data_path="./data/disc_data/"
+data_path="./mult_hot_out/disc_data/"
 embedding_path='./data/imdb.data.binary.p.0.01.l16'
+hot='mult'
 
 # training
 batch_size=64
 dics_lr=0.001
 u_gen_w=0.1
 u_disc_w=0.1
-output_path_prefix="${root_path}/outputs"
+output_path_prefix="${root_path}/mult_hot_out/outputs/"
 display_every=-1
 test_every=-1
 sample_every=-10 # dumb
@@ -79,4 +80,5 @@ CUDA_VISIBLE_DEVICES=1 python pretrain_disc_main.py \
   --pt_kld_anneal_start_epoch $pt_kld_anneal_start_epoch \
   --pt_kld_anneal_end_epoch $pt_kld_anneal_end_epoch \
   --pt_restore_epoch $pt_restore_epoch
+  --hot $hot
 

@@ -69,6 +69,7 @@ flags.DEFINE_integer('pt_nepochs', 10000, '')
 flags.DEFINE_integer('pt_kld_anneal_start_epoch', 40, '')
 flags.DEFINE_integer('pt_kld_anneal_end_epoch', 2000, '')
 flags.DEFINE_integer('pt_restore_epoch', 0, "..")
+flags.DEFINE_string('hot', 'one', 'hotness of labels')
 
 
 FLAGS = flags.FLAGS
@@ -115,7 +116,7 @@ def main(_):
 
     # load data
     s_data_loader = labeled_data_loader(\
-        FLAGS.data_path, FLAGS.batch_size, FLAGS.c_dim)
+        FLAGS.data_path, FLAGS.batch_size, FLAGS.c_dim, FLAGS.hot)
     # load embedding
     word_embeddings = load_word_embddings(FLAGS.embedding_path)
 

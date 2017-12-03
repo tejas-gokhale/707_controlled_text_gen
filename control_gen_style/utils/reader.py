@@ -66,8 +66,8 @@ class labeled_data_loader(object):
         self.data_path = data_path
         self.batch_size = batch_size
         self.y_dim = y_dim
-        
-        if hot not in valid_hots:
+
+        if hot not in self.valid_hots:
             raise ValueError('Invalid value for hot: must be \'one\' or \'mult\'.')
         else:
             self.hot = hot
@@ -85,7 +85,7 @@ class labeled_data_loader(object):
         if self.hot == 'one':
             code_fun = one_hot_code
         elif self.hot == 'mult':
-            code_fun = mult_hot_code    
+            code_fun = mult_hot_code
 
         self.trY = code_fun(self.trY, self.y_dim)
         self.trY = np.array(self.trY, dtype=np.int32)
@@ -146,7 +146,7 @@ class labeled_data_loader(object):
             return self.read_one_hot(data_path)
         elif hot == 'mult':
             return self.read_mult_hot(data_path)
-            
+
 
 
     def train_batch_iter(self, num_epochs, pad=True):

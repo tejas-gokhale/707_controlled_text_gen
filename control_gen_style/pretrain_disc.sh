@@ -12,7 +12,7 @@ root_path='./'
 hidden_dim=300
 emb_dim=300
 disc_emb_dim=$emb_dim
-c_dim=2
+c_dim=10
 z_dim=300
 disc_filter_sizes='3,4,5'
 disc_filter_nums='100,100,100'
@@ -20,7 +20,7 @@ disc_l2_lambda=0.2
 dropout_keep_prob=0.75
 
 # data
-seq_length=16
+seq_length=40
 vocab_size=16188
 bos_token=0
 eos_token=$((vocab_size-1))
@@ -33,13 +33,13 @@ batch_size=64
 dics_lr=0.001
 u_gen_w=0.1
 u_disc_w=0.1
-output_path_prefix="${root_path}/mult_hot_out/outputs/"
+output_path_prefix="${root_path}mult_hot_out/outputs/"
 display_every=-1
 test_every=-1
 sample_every=-10 # dumb
 checkpoint_every=-5
 # pre-train
-pt_nepochs=100
+pt_nepochs=2
 pt_kld_anneal_start_epoch=20 # dumb
 pt_kld_anneal_end_epoch=2000 # dumb
 pt_restore_epoch=0
@@ -79,6 +79,6 @@ CUDA_VISIBLE_DEVICES=1 python pretrain_disc_main.py \
   --pt_nepochs $pt_nepochs \
   --pt_kld_anneal_start_epoch $pt_kld_anneal_start_epoch \
   --pt_kld_anneal_end_epoch $pt_kld_anneal_end_epoch \
-  --pt_restore_epoch $pt_restore_epoch
+  --pt_restore_epoch $pt_restore_epoch \
   --hot $hot
 

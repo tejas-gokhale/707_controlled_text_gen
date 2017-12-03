@@ -132,8 +132,8 @@ class labeled_data_loader(object):
         with open(os.path.join(data_path,'test.txt'), 'r') as f:
             for line in f:
                 line = line.strip().split(',')
-                trY.append([int(w) for w in line[0].split()])
-                trX.append([int(w) for w in line[1].split()])
+                teY.append([int(w) for w in line[0].split()])
+                teX.append([int(w) for w in line[1].split()])
         trX = np.array(trX)
         trY = np.array(trY)
         teX = np.array(teX)

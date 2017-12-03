@@ -46,7 +46,7 @@ pt_restore_epoch=0
 
 name="ctrl_${mode}"
 
-CUDA_VISIBLE_DEVICES=1 python pretrain_disc_main.py \
+python pretrain_disc_main.py \
   --name $name \
   --mode $mode \
   --hidden_dim $hidden_dim \

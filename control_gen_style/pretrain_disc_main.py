@@ -127,11 +127,11 @@ def main(_):
     checkpoint_every = transform_to_nbatches(FLAGS.checkpoint_every, num_batches)
 
     # build model
-    model = Gen(FLAGS, word_embeddings, 'normal', 0, 1)
+    model = Gen(FLAGS, word_embeddings, 'normal', 0.0, 1.0)
 
     #
     step = 0
-    with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
+    with tf.Session() as sess:
         print("Start running ...")
         logging.info("Start running ...")
 

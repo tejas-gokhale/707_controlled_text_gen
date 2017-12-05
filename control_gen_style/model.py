@@ -194,28 +194,26 @@ class Gen(object):
         # kld = - tf.reduce_sum(1. + x_log_sigma - x_mu**2 - tf.exp(x_log_sigma), axis=1) / 2. # original std normal KL
         EPS = 1e-9
         if self.prior_distr == "normal":
-            kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma))
+            kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma), axis=1)
         elif self.prior_distr == "laplace":
             
-            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)))], "First two terms")
+            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(self.prior_sigma * self.prior_mu - self.prior_sigma * (x_mu + (1.0 / (tf.exp(x_log_sigma)))), axis=1))], "First two terms")
 
-            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(tf.log(self.prior_mu))], "Middle term")
+            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(tf.log(self.prior_sigma), axis=1))], "Middle term")
 
             # Take the absolute value of every number in x_mu so that we don't get negatives in the log
             x_mu = tf.abs(x_mu)
 
-            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(tf.log(x_mu))], "Last term")
+            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(1 - x_log_sigma, axis=1))], "Last term")
 
-            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / (x_mu))) + tf.log(self.prior_mu) + 1 - tf.log(x_mu))], "entire kld")
+            # laplace: mu = gamma, sigma = lambda 
+            kld = - tf.reduce_sum(self.prior_sigma * self.prior_mu - self.prior_sigma * (x_mu + (1.0 / (tf.exp(x_log_sigma)))) + tf.log(self.prior_sigma) + \
+                1 - x_log_sigma, axis=1)
 
-            kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / (x_mu))) + tf.log(self.prior_mu) + \
-                1 - tf.log(x_mu))
-
-            tf.Print(kld, [kld], "Hello with kld")
         elif self.prior_distr == "beta":
             kld = - tf.reduce_sum(tf.log(self.prior_mu) - tf.log(self.prior_sigma) - tf.log(x_mu) 
                 + x_log_sigma + (self.prior_sigma - tf.exp(x_log_sigma)) * 
-                (tf.digamma(self.prior_sigma) + tf.digamma(self.prior_mu))) 
+                (tf.digamma(self.prior_sigma) + tf.digamma(self.prior_mu)), axis=1) 
         else:
             raise Exception("not a real distribution")
         kld = tf.reduce_mean(kld)

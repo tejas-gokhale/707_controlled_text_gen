@@ -187,14 +187,14 @@ class Gen(object):
         # kld = - tf.reduce_sum(1. + x_log_sigma - x_mu**2 - tf.exp(x_log_sigma), axis=1) / 2. # original std normal KL
 
         if self.prior_distr == "normal":
-            kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma))
+            kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma), axis=1)
         elif self.prior_distr == "exponential":
             kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)) + tf.log(self.prior_mu) + \
-                1 - tf.log(x_mu))
+                1 - tf.log(x_mu), axis=1)
         elif self.prior_distr == "beta":
             kld = - tf.reduce_sum(tf.log(self.prior_mu) - tf.log(self.prior_sigma) - tf.log(x_mu) 
                 + x_log_sigma + (self.prior_sigma - tf.exp(x_log_sigma)) * 
-                (tf.digamma(self.prior_sigma) + tf.digamma(self.prior_mu))) 
+                (tf.digamma(self.prior_sigma) + tf.digamma(self.prior_mu)), axis=1) 
         else:
             raise Exception("not a real distribution")
         kld = tf.reduce_mean(kld)

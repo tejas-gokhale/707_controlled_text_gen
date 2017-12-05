@@ -22,11 +22,11 @@ disc_filter_nums='100,100,100'
 disc_l2_lambda=0.2
 dropout_keep_prob=0.75
 
-# prior: normal, exponential, beta
-# Use sigma=0.0 always for exponential
-prior_distr='exponential'
+# prior: normal, laplace
+# laplace: mu = mu, sigma = lambda 
+prior_distr='laplace'
 prior_mu=2.0
-prior_sigma=0.0
+prior_sigma=1.0
 
 # data
 seq_length=16

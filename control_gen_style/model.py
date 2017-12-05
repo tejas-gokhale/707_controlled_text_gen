@@ -4,7 +4,7 @@ __author__="zhitingh"
 import cPickle
 import numpy as np
 import tensorflow as tf
-from tensorflow.contrib.distributions import Exponential 
+from tensorflow.contrib.distributions import Laplace
 #from tensorflow.python.ops import tensor_array_ops, control_flow_ops
 #import tf.contrib.rnn as rnn
 from tensorflow.contrib.rnn import BasicLSTMCell as lstm_cell
@@ -147,7 +147,10 @@ class Gen(object):
 
 
     def build_pretrain_loss(self, x_z, x_mu, x_log_sigma, c):
+        print("x_z: ", x_z.shape) 
+        print("c: ", c.shape)
         x_h_pt = tf.concat([x_z, c], 1)
+
         self.recon_loss, self.kld, gen_p, self.recon_loss_word = self.build_reconstruct_loss( \
             x_h_pt, x_mu, x_log_sigma, self.x, self.x_ind, self.x_oh, self.x_emb)
 
@@ -192,14 +195,21 @@ class Gen(object):
         EPS = 1e-9
         if self.prior_distr == "normal":
             kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma))
-        elif self.prior_distr == "exponential":
+        elif self.prior_distr == "laplace":
             
             x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)))], "First two terms")
 
-            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(tf.log(x_mu + EPS))], "Last term")
+            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(tf.log(self.prior_mu))], "Middle term")
 
-            kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / (x_mu + EPS))) + tf.log(self.prior_mu) + \
-                1 - tf.log(x_mu + EPS))
+            # Take the absolute value of every number in x_mu so that we don't get negatives in the log
+            x_mu = tf.abs(x_mu)
+
+            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(tf.log(x_mu))], "Last term")
+
+            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / (x_mu))) + tf.log(self.prior_mu) + 1 - tf.log(x_mu))], "entire kld")
+
+            kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / (x_mu))) + tf.log(self.prior_mu) + \
+                1 - tf.log(x_mu))
 
             tf.Print(kld, [kld], "Hello with kld")
         elif self.prior_distr == "beta":
@@ -433,14 +443,10 @@ class Gen(object):
 
         if self.prior_distr == "normal":
             z = tf.random_normal([self.batch_size, self.z_dim], mean=self.prior_mu, stddev=self.prior_sigma)
-        elif self.prior_distr == "exponential":
-            rate = 1 / self.prior_mu 
-            # self.prior_sigma is ignored here (only using 1 parameter exponential)
-            exp_distr = tf.contrib.distributions.Exponential(rate)
-            z = exp_distr.sample(sample_shape=([self.batch_size, self.z_dim]))
-        elif self.prior_distr == "beta":
-            beta_distr = tf.contrib.distributions.Beta(self.prior_mu, self.prior_sigma)
-            z = beta_distr.sample(sample_shape=([self.batch_size, self.z_dim]))
+        elif self.prior_distr == "laplace":
+            rate = 1 / self.prior_sigma 
+            lp = tf.contrib.distributions.Laplace(self.prior_mu, rate)
+            z = lp.sample(sample_shape=([self.batch_size, self.z_dim]))
         else:
             raise Exception("Invalid distribution")
 
@@ -846,13 +852,37 @@ class Gen(object):
 
     def enc_sampler(self, mu, log_sigma, num_samples=None):
         if num_samples is None:
-            eps = tf.random_normal(tf.shape(mu))
+            print("num_samples is None")
+
+            if self.prior_distr == "normal":
+                eps = tf.random_normal(tf.shape(mu))
+            elif self.prior_distr == "laplace":
+                lp = tf.contrib.distributions.Laplace(mu, log_sigma)
+                eps = lp.sample()
+            else:
+                raise Exception("Invalid distribution")
+
+            print("mu tf shape: ", tf.shape(mu), mu.shape)
+            print("log sigma shape: ", tf.shape(log_sigma), log_sigma.shape)
+            print("eps shape: ", eps.shape)
+
             # batch_size x z_dim
             z = mu + tf.exp(0.5 * log_sigma) * eps
         else:
-            eps = tf.random_normal([self.batch_size, self.z_dim, num_samples])
+            print("num_samples is NOT None")
+            if self.prior_distr == "normal":
+                eps = tf.random_normal([self.batch_size, self.z_dim, num_samples])
+            elif self.prior_distr == "laplace":
+                lp = tf.contrib.distributions.Laplace(mu, log_sigma)
+                eps = lp.sample(num_samples)
+                assert(eps.shape[2] == num_samples)
+            else:
+                raise Exception("Invalid distribution")
+
+            assert(eps.shape == (self.batch_size, self.z_dim, num_samples))
+
             z = tf.expand_dims(mu, -1) + tf.exp(0.5 * log_sigma) * tf.expand_dims(eps, -1)
-            # batch_size x num_sampels x z_dim
+            # batch_size x num_samples x z_dim
             z = tf.transpose(z, [0, 2, 1])
 
         return z

@@ -2,8 +2,8 @@
 
 # generic options
 mode='pretrain_vae'
-restore_ckpt_path='./mult_hot_out/models/vae/'
-restore_vars_path='./mult_hot_out/models/vae/'
+restore_ckpt_path='./mult_hot_out/models/disc/'
+restore_vars_path='./mult_hot_out/models/disc/'
 restore_start_step=0
 #
 root_path='./'
@@ -13,13 +13,13 @@ hidden_dim=300
 emb_dim=300
 disc_emb_dim=$emb_dim
 c_dim=10
-z_dim=300 #TODO
+z_dim=50 #TODO
 disc_filter_sizes='3,4,5'
 disc_filter_nums='100,100,100'
 disc_l2_lambda=0.2
 
 # data
-seq_length=40
+seq_length=25
 vocab_size=16188
 bos_token=0
 eos_token=$((vocab_size-1))
@@ -33,13 +33,13 @@ u_gen_w=0.1
 u_disc_w=0.1
 bow_w=0.2
 recon_dropout_keep_prob=1.
-output_path_prefix="${root_path}mult_hot_out/outputs/"
-display_every=-10 #-1
-test_every=-100 #-5
-sample_every=-100 #-10
-checkpoint_every=-100 #-10
+output_path_prefix="${root_path}mult_hot_out/outputs/vae/"
+display_every=-1 #-1
+test_every=-41 #-5
+sample_every=-5 #-10
+checkpoint_every=-20 #-10
 # pre-train
-pt_nepochs=100000
+pt_nepochs=41
 pt_kld_anneal_start_epoch=200 #20 #200
 pt_kld_anneal_end_epoch=20000 #2000 #20000
 pt_restore_epoch=0

@@ -119,7 +119,7 @@ def main(_):
     checkpoint_every = transform_to_nbatches(FLAGS.checkpoint_every, num_batches)
 
     # build model
-    model = Gen(FLAGS, word_embeddings, 'normal', 0, 1)
+    model = Gen(FLAGS, word_embeddings, hot='mult')
 
     #
     step = 0

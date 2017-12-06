@@ -9,7 +9,9 @@ restore_disc_vars_path="${root_path}/example_models/pre_disc/snapshots/_disc_var
 #
 restore_vars_path="${root_path}/example_models/pre_vae/snapshots/_vars_464000.p"
 restore_start_step=0
+
 kld_w=0.0909
+kld_anneal_method = "onoff"
 
 # model
 hidden_dim=300

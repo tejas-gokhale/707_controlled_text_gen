@@ -69,6 +69,7 @@ flags.DEFINE_integer('checkpoint_every', -1, "..")
 flags.DEFINE_integer('nepochs', 500, '')
 flags.DEFINE_integer('nbatches', 300, '')
 flags.DEFINE_float("kld_w", 0.01, "")
+flags.DEFINE_string("kld_anneal_method", "constant", "Method to anneal the kld term in the cost function")
 # pre-train
 flags.DEFINE_integer('pt_nepochs', 10000, '')
 flags.DEFINE_integer('pt_kld_anneal_start_epoch', 40, '')
@@ -172,6 +173,9 @@ def main(_):
         total_num_steps = FLAGS.nepochs * num_batches
         # arbitrary values
         c = np.ones([FLAGS.batch_size, FLAGS.c_dim]) / FLAGS.c_dim
+
+        kld_w = 0.0
+
         for e in xrange(FLAGS.nepochs):
             print("------------Epoch {}".format(e))
             for b in xrange(num_batches):
@@ -186,7 +190,15 @@ def main(_):
                 #temp_o = np.maximum(1e-5, 0.7**(e*5))
                 temp_o = 1. # TODO: anneal to 0.
 
-                kld_w = FLAGS.kld_w
+                if FLAGS.kld_anneal_method == "constant":
+                    kld_w = 1.0 # Always present
+                elif FLAGS.kld_anneal_method == "onoff":
+                    kld_w = 0.0 if kld_w == 1.0 else 1.0
+                elif FLAGS.kld_anneal_method == "oscillate":
+                    kld_w = 0.5 # TODO 
+                else:
+                    raise Exception("Invalid kld anneal method")
+
                 u_x_batch = u_data_loader.next_batch()
                 feed = {model.x: u_x_batch, model.c: c, model.kld_w: kld_w, \
                         model.temp_o: temp_o, model.temp_g: 1., \

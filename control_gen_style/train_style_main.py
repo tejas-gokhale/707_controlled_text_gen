@@ -169,6 +169,7 @@ def main(_):
                 logging.info('Restoring disc vars from {}'.format(FLAGS.restore_disc_vars_path))
                 model.load(sess, FLAGS.restore_disc_vars_path)
 
+        total_num_steps = FLAGS.nepochs * num_batches 
         # arbitrary values
         c = np.ones([FLAGS.batch_size, FLAGS.c_dim]) / FLAGS.c_dim
         for e in xrange(FLAGS.nepochs):
@@ -195,7 +196,7 @@ def main(_):
                 sample = step % sample_every == 0
 
                 model.train_style_transfer_one_step(sess, step, feed, display,
-                        sample, 5, sample_path)
+                        sample, 5, sample_path, total_num_steps=total_num_steps)
 
                 if step > 0 and step % checkpoint_every == 0:
                     try:

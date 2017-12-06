@@ -199,16 +199,16 @@ class Gen(object):
             
             x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(self.prior_sigma * self.prior_mu - self.prior_sigma * (x_mu + (1.0 / (tf.exp(x_log_sigma)))), axis=1))], "First two terms")
 
-            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(tf.log(self.prior_sigma), axis=1))], "Middle term")
+            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(tf.log(self.prior_sigma)))], "Middle term")
 
             # Take the absolute value of every number in x_mu so that we don't get negatives in the log
             x_mu = tf.abs(x_mu)
 
-            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(1 - x_log_sigma, axis=1))], "Last term")
+            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(1 - x_log_sigma))], "Last term")
 
             # laplace: mu = gamma, sigma = lambda 
-            kld = - tf.reduce_sum(self.prior_sigma * self.prior_mu - self.prior_sigma * (x_mu + (1.0 / (tf.exp(x_log_sigma)))) + tf.log(self.prior_sigma) + \
-                1 - x_log_sigma, axis=1)
+            kld = - tf.reduce_sum(- self.prior_sigma * self.prior_mu + self.prior_sigma * (x_mu + (1.0 / (tf.exp(x_log_sigma)))) - tf.log(self.prior_sigma) - \
+                1 + x_log_sigma, axis=1)
 
         elif self.prior_distr == "beta":
             kld = - tf.reduce_sum(tf.log(self.prior_mu) - tf.log(self.prior_sigma) - tf.log(x_mu) 
@@ -692,7 +692,7 @@ class Gen(object):
 
 
     def train_style_transfer_one_step(self, sess, step, feed=None, display=False,
-            sample=False, sample_nbatches=1, sample_path=None):
+            sample=False, sample_nbatches=1, sample_path=None, total_num_steps=0):
         # infer c of x
         s_prob = sess.run(self.s_prob, feed_dict=feed)
         # binarize
@@ -705,12 +705,12 @@ class Gen(object):
 
         if display:
             temp_o = feed[self.temp_o]
-            print("iter: %d, style_loss: %.4f, style_accu: %.4f " \
+            print("iter: %d / %d, style_loss: %.4f, style_accu: %.4f " \
                     "pt_loss: %.4f, recon_loss: %.4f, kld: %.4f, ind_loss: %.4f, style_recon_loss: %.4f, temp_o: %.4f" % \
-                  (step, style_loss, style_accu, pt_loss, recon_loss, kld, style_ind_loss, style_recon_loss, temp_o))
-            logging.info("iter: %d, style_loss: %.4f, style_accu: %.4f " \
+                  (step, total_num_steps, style_loss, style_accu, pt_loss, recon_loss, kld, style_ind_loss, style_recon_loss, temp_o))
+            logging.info("iter: %d / %d, style_loss: %.4f, style_accu: %.4f " \
                     "pt_loss: %.4f, recon_loss: %.4f, kld: %.4f, ind_loss: %.4f, style_recon_loss: %.4f, temp_o: %.4f" % \
-                  (step, style_loss, style_accu, pt_loss, recon_loss, kld, style_ind_loss, style_recon_loss, temp_o))
+                  (step, total_num_steps, style_loss, style_accu, pt_loss, recon_loss, kld, style_ind_loss, style_recon_loss, temp_o))
 
         if sample:
             samples = sess.run(self.sample_x_style(), feed_dict=feed)

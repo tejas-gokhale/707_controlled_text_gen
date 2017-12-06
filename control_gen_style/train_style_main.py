@@ -191,11 +191,14 @@ def main(_):
                 temp_o = 1. # TODO: anneal to 0.
 
                 if FLAGS.kld_anneal_method == "constant":
-                    kld_w = 1.0 # Always present
+                    kld_w = 1.0 # Always present 0.0909
                 elif FLAGS.kld_anneal_method == "onoff":
                     kld_w = 0.0 if kld_w == 1.0 else 1.0
                 elif FLAGS.kld_anneal_method == "oscillate":
-                    kld_w = 0.5 # TODO 
+                    curr_x_pos = e + (b / num_batches) # x position on the graph
+                    # 10 chosen as the frequency of the sin curve to get a nice oscillation frequency
+                    kld_w = (1/FLAGS.nepochs) * curr_x_pos + (1/FLAGS.nepochs) * curr_x_pos * tf.sin(10 * curr_x_pos)
+                    kld_w = tf.Print(kld_w, [curr_x_pos], "curr x pos for oscillation")
                 else:
                     raise Exception("Invalid kld anneal method")
 

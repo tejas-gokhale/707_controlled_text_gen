@@ -198,6 +198,8 @@ def main(_):
                     curr_x_pos = e + (float(b) / num_batches) # x position on the graph
                     # 10 chosen as the frequency of the sin curve to get a nice oscillation frequency
                     kld_w = (1.0 / FLAGS.nepochs) * curr_x_pos + (1.0 / FLAGS.nepochs) * curr_x_pos * np.sin(10 * curr_x_pos)
+                    if kld_w > 1.0: # Limit ceiling 
+                        kld_w = 1.0 
                     print("curr x pos for oscillation: ", curr_x_pos)
                 else:
                     raise Exception("Invalid kld anneal method")

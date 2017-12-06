@@ -11,7 +11,7 @@ restore_vars_path="${root_path}/example_models/pre_vae/snapshots/_vars_464000.p"
 restore_start_step=0
 
 kld_w=0.0909
-# constant, onoff, or oscillate
+# constant, sigmoid, onoff, or oscillate
 kld_anneal_method="onoff"
 
 # model

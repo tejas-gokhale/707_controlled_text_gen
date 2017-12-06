@@ -190,12 +190,14 @@ def main(_):
                 #temp_o = np.maximum(1e-5, 0.7**(e*5))
                 temp_o = 1. # TODO: anneal to 0.
 
+                curr_x_pos = e + (float(b) / num_batches) # x position on the graph
                 if FLAGS.kld_anneal_method == "constant":
                     kld_w = 1.0 # Always present 0.0909
+                elif FLAGS.kld_anneal_method == "sigmoid":
+                    kld_w = -1.0 / (1 + np.exp(0.2 * (x - FLAGS.nepochs / 2))) + 1
                 elif FLAGS.kld_anneal_method == "onoff":
                     kld_w = 0.0 if kld_w == 1.0 else 1.0
                 elif FLAGS.kld_anneal_method == "oscillate":
-                    curr_x_pos = e + (float(b) / num_batches) # x position on the graph
                     # 10 chosen as the frequency of the sin curve to get a nice oscillation frequency
                     kld_w = (1.0 / FLAGS.nepochs) * curr_x_pos + (1.0 / FLAGS.nepochs) * curr_x_pos * np.sin(10 * curr_x_pos)
                     if kld_w > 1.0: # Limit ceiling 
@@ -203,6 +205,8 @@ def main(_):
                     print("curr x pos for oscillation: ", curr_x_pos)
                 else:
                     raise Exception("Invalid kld anneal method")
+
+                assert(0.0 <= kld_w and kld_w <= 1.0)
 
                 u_x_batch = u_data_loader.next_batch()
                 feed = {model.x: u_x_batch, model.c: c, model.kld_w: kld_w, \

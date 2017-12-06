@@ -194,7 +194,7 @@ def main(_):
                 if FLAGS.kld_anneal_method == "constant":
                     kld_w = 1.0 # Always present 0.0909
                 elif FLAGS.kld_anneal_method == "sigmoid":
-                    kld_w = -1.0 / (1 + np.exp(0.2 * (x - FLAGS.nepochs / 2))) + 1
+                    kld_w = -1.0 / (1 + np.exp(0.2 * (curr_x_pos - FLAGS.nepochs / 2))) + 1
                 elif FLAGS.kld_anneal_method == "onoff":
                     kld_w = 0.0 if kld_w == 1.0 else 1.0
                 elif FLAGS.kld_anneal_method == "oscillate":

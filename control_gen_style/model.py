@@ -661,7 +661,7 @@ class Gen(object):
 
 
     def train_style_transfer_one_step(self, sess, step, feed=None, display=False,
-            sample=False, sample_nbatches=1, sample_path=None):
+            sample=False, sample_nbatches=1, sample_path=None, total_num_steps=0):
         # infer c of x
         s_prob = sess.run(self.s_prob, feed_dict=feed)
         # binarize
@@ -674,12 +674,12 @@ class Gen(object):
 
         if display:
             temp_o = feed[self.temp_o]
-            print("iter: %d, style_loss: %.4f, style_accu: %.4f " \
+            print("iter: %d / %d, style_loss: %.4f, style_accu: %.4f " \
                     "pt_loss: %.4f, recon_loss: %.4f, kld: %.4f, ind_loss: %.4f, style_recon_loss: %.4f, temp_o: %.4f" % \
-                  (step, style_loss, style_accu, pt_loss, recon_loss, kld, style_ind_loss, style_recon_loss, temp_o))
-            logging.info("iter: %d, style_loss: %.4f, style_accu: %.4f " \
+                  (step, total_num_steps, style_loss, style_accu, pt_loss, recon_loss, kld, style_ind_loss, style_recon_loss, temp_o))
+            logging.info("iter: %d / %d, style_loss: %.4f, style_accu: %.4f " \
                     "pt_loss: %.4f, recon_loss: %.4f, kld: %.4f, ind_loss: %.4f, style_recon_loss: %.4f, temp_o: %.4f" % \
-                  (step, style_loss, style_accu, pt_loss, recon_loss, kld, style_ind_loss, style_recon_loss, temp_o))
+                  (step, total_num_steps, style_loss, style_accu, pt_loss, recon_loss, kld, style_ind_loss, style_recon_loss, temp_o))
 
         if sample:
             samples = sess.run(self.sample_x_style(), feed_dict=feed)

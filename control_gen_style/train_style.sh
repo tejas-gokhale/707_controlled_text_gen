@@ -11,6 +11,7 @@ restore_vars_path="${root_path}/example_models/pre_vae/snapshots/_vars_464000.p"
 restore_start_step=0
 
 kld_w=0.0909
+# constant, onoff, or oscillate
 kld_anneal_method="onoff"
 
 # model
@@ -100,6 +101,7 @@ CUDA_VISIBLE_DEVICES=0 python train_style_main.py \
   --nepochs $nepochs \
   --nbatches $nbatches \
   --kld_w $kld_w \
+  --kld_anneal_method $kld_anneal_method \
   --pt_nepochs $pt_nepochs \
   --pt_kld_anneal_start_epoch $pt_kld_anneal_start_epoch \
   --pt_kld_anneal_end_epoch $pt_kld_anneal_end_epoch \

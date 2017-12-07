@@ -187,7 +187,7 @@ class Gen(object):
         # kld = - tf.reduce_sum(1. + x_log_sigma - x_mu**2 - tf.exp(x_log_sigma), axis=1) / 2. # original std normal KL
 
         if self.prior_distr == "normal":
-            kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma), axis=1)
+            kld = -0.5 * tf.reduce_sum(1.0 - (tf.log(self.prior_sigma) - x_log_sigma) - (tf.exp(x_log_sigma) + (x_mu - self.prior_mu)**2) / self.prior_sigma, axis=1)
         elif self.prior_distr == "exponential":
             kld = - tf.reduce_sum(self.prior_mu * self.prior_sigma - self.prior_mu * (tf.exp(x_log_sigma) + (1.0 / x_mu)) + tf.log(self.prior_mu) + \
                 1 - tf.log(x_mu), axis=1)

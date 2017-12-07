@@ -2,6 +2,28 @@ import numpy as np
 import re
 import matplotlib.pyplot as plt
 
+
+
+n01 = ("Normal(0,1)", "results/normal_0_1_45578047-85c4-46a2-acbd-c4cb95021a8e.ctrl_style/log.txt")
+n02 = ("Normal(0,2)", "results/normal_0_2_2e735956-6b65-4e03-9c42-2d6c2c0c1f55.ctrl_style/log.txt")
+
+n01_onoff = ("Normal(0,1) onoff", "results/n_0_1_onoff_fbc49bce-2896-412a-bb29-28ceddefbf2f.ctrl_style/log.txt")
+n01_oscillate = ("Normal(0,1) oscillate", "results/n_0_1_oscillate_393c0595-ece0-4440-9517-cc8d73d6b888.ctrl_style/log.txt")
+n01_sigmoid = ("Normal(0,1) sigmoid", "results/n_0_1_sigmoid_a1859a6e-c75f-4021-8a08-65f719656982.ctrl_style/log.txt")
+n01_constant1 = ("Normal(0,1) constant=1", "results/n_0_1_constant1_4de4b5bc-f31f-4068-981e-d657d37b7ac1.ctrl_style/log.txt")
+n01_constant0909 = ("Normal(0,1) constant=0.0909", "results/n_0_1_constant0909_48e71d28-93d8-47ea-8f6f-936276e4147d.ctrl_style/log.txt")
+
+b12 = ("Beta(1,2)", "results/beta_1_2_6ea98694-8d14-4049-aca0-20cb9f149564.ctrl_style/log.txt")
+e12 = ("Exp(1,2)", "results/exp_1_2_8dca0bb8-cf87-4f79-b2e2-1b14b678cd4d.ctrl_style/log.txt")
+
+
+# Modify this to change what is plotted
+exps_to_plot = [n01, n02, n01_onoff, n01_oscillate, n01_sigmoid, n01_constant1, n01_constant0909]
+
+
+
+########################################################################################################
+
 def plot_log_data(log_file_name):
 
     style_loss_list = []
@@ -25,7 +47,7 @@ def plot_log_data(log_file_name):
         i = 0
         for line in log_file:
 
-        	print(i)
+        	# print(i)
         	i += 1
 
         	if len(style_loss_list) > 400:
@@ -43,7 +65,7 @@ def plot_log_data(log_file_name):
 	        ind_loss = re.findall(ind_loss_re, line)[0]
 	        style_recon_loss = re.findall(style_recon_loss_re, line)[0]
 
-	        print("recons: ", recon_loss)
+	        # print("recons: ", recon_loss)
 
 	        style_loss_list.append(style_loss)
 	        style_accu_list.append(style_accu)
@@ -66,22 +88,14 @@ ex_line = "INFO:root:iter: 1, style_loss: nan, style_accu: 0.4941 pt_loss: nan, 
 # style_loss = ex_line.split("style_loss: ", 1)
 # print("style loss: ", style_loss)
 
-n01 = "results/normal_0_1_45578047-85c4-46a2-acbd-c4cb95021a8e.ctrl_style/log.txt"
-n02 = "results/normal_0_2_2e735956-6b65-4e03-9c42-2d6c2c0c1f55.ctrl_style/log.txt"
-b12 = "results/beta_1_2_6ea98694-8d14-4049-aca0-20cb9f149564.ctrl_style/log.txt"
-e12 = "results/exp_1_2_8dca0bb8-cf87-4f79-b2e2-1b14b678cd4d.ctrl_style/log.txt"
 
-n01_results = plot_log_data(n01)
-n02_results = plot_log_data(n02)
-b12_results = plot_log_data(b12)
-e12_results = plot_log_data(e12)
 
-results = {
-	"Norma(0, 1)": n01_results,
-	"Normal(0, 2)": n02_results,
-	"Beta(1, 2)": b12_results,
-	"Exp(1, 2)": e12_results
-}
+results = {}
+
+for exp_name, exp_file in exps_to_plot:
+	exp_results = plot_log_data(exp_file)
+	results[exp_name] = exp_results
+
 
 print("Finished getting data")
 # print(results[3])
@@ -93,11 +107,11 @@ kld_ind = 4
 ind_loss_ind = 5
 style_recon_loss_ind = 6
 
-num_rows = len(n01_results[0])
-x_vals = np.arange(num_rows)
+# num_rows = len(n01_results[0])
+# x_vals = np.arange(num_rows)
 
-print(len(n01_results[recon_loss_ind]))
-print(len(e12_results[recon_loss_ind]))
+# print(len(n01_results[recon_loss_ind]))
+# print(len(e12_results[recon_loss_ind]))
 
 
 

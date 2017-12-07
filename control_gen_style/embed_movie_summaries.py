@@ -19,7 +19,7 @@ TEST_DATA_FILE_PATH = '../summaries_genre_short.txt'
 REF_VOCAB_PATH = 'refs/ref_vocab.dict'
 
 TRAIN_PCT = 0.99
-PAD = 25
+PAD = 16
 
 
 def main(test=False):

@@ -5,9 +5,9 @@ mode='style'
 restore_ckpt_path='/'
 #
 root_path='.'
-restore_disc_vars_path="${root_path}/mult_hot_out/models/disc/_disc_vars_195779.p"
+restore_disc_vars_path="${root_path}/mult_hot_out/models/disc/_disc_vars_328653.p"
 #
-restore_vars_path="${root_path}/mult_hot_out/models/vae/_vars_3160.p"
+restore_vars_path="${root_path}/mult_hot_out/models/vae/_vars_81349.p"
 restore_start_step=0
 kld_w=0.0909
 
@@ -28,7 +28,7 @@ prior_mu=0.0
 prior_sigma=1.0
 
 # data
-seq_length=25
+seq_length=16
 vocab_size=16188
 bos_token=0
 eos_token=$((vocab_size-1))
@@ -36,7 +36,7 @@ data_path="./mult_hot_out/vae_data"
 embedding_path='./data/imdb.data.binary.p.0.01.l16'
 
 # training
-batch_size=32
+batch_size=64
 dics_lr=0.001
 u_gen_w=0.1
 u_disc_w=0.1
@@ -44,13 +44,13 @@ ind_gen_w=0.5
 bow_w=0.2
 recon_dropout_keep_prob=1.
 style_w=0.1
-output_path_prefix="${root_path}/mult_hot_out/outputs/whole/"
-display_every=1
+output_path_prefix="${root_path}/mult_hot_out/outputs/whole"
+display_every=-1
 test_every=-1
-sample_every=-1
-checkpoint_every=-10
+sample_every=-100
+checkpoint_every=-400
 # ful train
-nepochs=1 #500
+nepochs=1000 #500
 nbatches=1
 # pre-train
 pt_nepochs=30 # dumb

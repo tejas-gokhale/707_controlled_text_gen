@@ -77,10 +77,11 @@ class Gen(object):
             self.gen_output_unit = self.create_gen_output_layer()
             self.gen_init_state_unit = self.create_gen_init_state_layer()
 
+        '''
         with tf.variable_scope('disc'):
             self.disc_emb = tf.Variable(embeddings, dtype=tf.float32,
                                         name='disc_emb')
-
+        '''
         def _x_rep(x):
             # one_hot coding
             x_oh = tf.one_hot(x, self.vocab_size, 1.0, 0.0)
@@ -398,21 +399,25 @@ class Gen(object):
         #x_mu_h_pt = tf.concat([x_mu, 1.-self.c], 1)
         #x_mu_s_pt = self.gen_init_state_unit(x_mu_h_pt)
         #gen_x_mu_rev, _ = self.generate(x_mu_s_pt, temp_g=temp_g)
-
+        '''
         # neg
         c = tf.concat([tf.ones([self.batch_size, 1]), tf.zeros([self.batch_size, 1])], 1)
         x_mu_h_pt = tf.concat([x_mu, c], 1)
         x_mu_s_pt = self.gen_init_state_unit(x_mu_h_pt)
         gen_x_mu_neg, _ = self.generate(x_mu_s_pt, temp_g=temp_g)
-
         # pos
         c = tf.concat([tf.zeros([self.batch_size, 1]), tf.ones([self.batch_size, 1])], 1)
         x_mu_h_pt = tf.concat([x_mu, c], 1)
         x_mu_s_pt = self.gen_init_state_unit(x_mu_h_pt)
         gen_x_mu_pos, _ = self.generate(x_mu_s_pt, temp_g=temp_g)
+        '''
 
+        c = tf.cast(tf.multinomial(tf.log(tf.constant(10.0, shape=[self.batch_size, 2])), self.c_dim), dtype=tf.float32)
+        x_mu_h_pt = tf.concat([x_mu, c], 1)
+        x_mu_s_pt = self.gen_init_state_unit(x_mu_h_pt)
+        gen_x_mu, _ = self.generate(x_mu_s_pt, temp_g=temp_g)
         # combined
-        samples = tf.concat([self.x, gen_x_mu_neg, gen_x_mu_pos], 1)
+        samples = tf.concat([self.x, gen_x_mu], 1)
         samples = tf.reshape(samples, [-1, self.seq_length])
         return samples
 
@@ -869,7 +874,7 @@ class Gen(object):
             # Embedding layer
             # average over word embeddings
             input_emb = tf.reshape(tf.matmul(tf.reshape(input, [-1, self.vocab_size]),
-                                             self.disc_emb),
+                                             self.gen_emb),
                                    [-1, self.seq_length, self.disc_emb_dim])
             # add the channel dimension
             input_emb = tf.expand_dims(input_emb, -1)

@@ -20,7 +20,7 @@ disc_l2_lambda=0.2
 dropout_keep_prob=0.75
 
 # data
-seq_length=25
+seq_length=16
 vocab_size=16188
 bos_token=0
 eos_token=$((vocab_size-1))
@@ -34,12 +34,12 @@ dics_lr=0.001
 u_gen_w=0.1
 u_disc_w=0.1
 output_path_prefix="${root_path}mult_hot_out/outputs/disc"
-display_every=1000
+display_every=-1
 test_every=-1
 sample_every=-10 # dumb
-checkpoint_every=-10
+checkpoint_every=-80
 # pre-train
-pt_nepochs=30
+pt_nepochs=101
 pt_kld_anneal_start_epoch=20 # dumb
 pt_kld_anneal_end_epoch=2000 # dumb
 pt_restore_epoch=0

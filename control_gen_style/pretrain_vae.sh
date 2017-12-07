@@ -19,7 +19,7 @@ disc_filter_nums='100,100,100'
 disc_l2_lambda=0.2
 
 # data
-seq_length=25
+seq_length=16
 vocab_size=16188
 bos_token=0
 eos_token=$((vocab_size-1))
@@ -35,18 +35,18 @@ bow_w=0.2
 recon_dropout_keep_prob=1.
 output_path_prefix="${root_path}mult_hot_out/outputs/vae/"
 display_every=-1 #-1
-test_every=-41 #-5
-sample_every=-5 #-10
-checkpoint_every=-20 #-10
+test_every=-1 #-5
+sample_every=-10 #-10
+checkpoint_every=-15 #-10
 # pre-train
-pt_nepochs=41
+pt_nepochs=25
 pt_kld_anneal_start_epoch=200 #20 #200
 pt_kld_anneal_end_epoch=20000 #2000 #20000
 pt_restore_epoch=0
 
 name="ctrl_${mode}"
 
-python pretrain_vae_main.py \
+TZ=US/Eastern python pretrain_vae_main.py \
   --name $name \
   --mode $mode \
   --hidden_dim $hidden_dim \

@@ -8,6 +8,7 @@ import os
 import uuid
 import logging
 import shutil
+import time
 import pprint
 
 from model import Gen
@@ -154,7 +155,15 @@ def main(_):
             #
             #c_values = np.random.randint(0,FLAGS.c_dim,[FLAGS.batch_size])
             #c = np.array(one_hot_code(c_values, FLAGS.c_dim))
+            prev_time = time.time()
+            cur_time = time.time()
+            time.tzset()
             for e in xrange(FLAGS.pt_restore_epoch, FLAGS.pt_nepochs):
+                prev_time = cur_time
+                cur_time = time.time()
+                msg = 'Epoch ' + str(e) + ': at ' + time.strftime('%H:%M:%S', time.localtime(cur_time))
+                print(msg)
+                logging.info(msg)
                 for b in xrange(data_loader.num_batches):
                     step = e * data_loader.num_batches + b
                     if step < FLAGS.restore_start_step:
@@ -174,7 +183,6 @@ def main(_):
 
                     if step % test_every == 0:
                         model.pretrain_evaluate(sess, data_loader, step)
-
                     if step > 0 and step % checkpoint_every == 0:
                         try:
                             saver.save(sess, checkpoint_path, global_step=step)
@@ -184,12 +192,17 @@ def main(_):
                         except:
                             print("Checkpoint error ..")
                             logging.info("Checkpoint error ..")
+                prev_time = cur_time
+                cur_time = time.time()
+                diff_msg = 'Epoch ' + str(e) + ': took ' + time.strftime('%H:%M:%S', time.gmtime(cur_time - prev_time))
+                print(diff_msg)
+                logging.info(diff_msg)
 
             try:
                 saver.save(sess, checkpoint_path, global_step=step)
                 print("snapshot to %s %d" % (checkpoint_path,step))
                 logging.info("snapshot to %s %d" % (checkpoint_path,step))
-                model.save(checkpoint_path, step)
+                model.save(sess, checkpoint_path, step)
             except:
                 print("Checkpoint error ..")
                 logging.info("Checkpoint error ..")

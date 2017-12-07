@@ -197,18 +197,21 @@ class Gen(object):
             kld = -0.5 * tf.reduce_sum(1.0 - (x_log_sigma - tf.log(self.prior_sigma)) - (self.prior_sigma + (self.prior_mu - x_mu)**2) / tf.exp(x_log_sigma), axis=1)
         elif self.prior_distr == "laplace":
             
-            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(self.prior_sigma * self.prior_mu - self.prior_sigma * (x_mu + (1.0 / (tf.exp(x_log_sigma)))), axis=1))], "First two terms")
+            #x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(self.prior_sigma * self.prior_mu - self.prior_sigma * (x_mu + (1.0 / (tf.exp(x_log_sigma)))), axis=1))], "First two terms")
 
-            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(tf.log(self.prior_sigma)))], "Middle term")
+            #x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(tf.log(self.prior_sigma)))], "Middle term")
 
             # Take the absolute value of every number in x_mu so that we don't get negatives in the log
-            x_mu = tf.abs(x_mu)
+            # x_mu = tf.abs(x_mu)
 
-            x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(1 - x_log_sigma))], "Last term")
+            #x_log_sigma = tf.Print(x_log_sigma, [tf.reduce_mean(tf.reduce_sum(1 - x_log_sigma))], "Last term")
 
             # laplace: mu = gamma, sigma = lambda 
-            kld = - tf.reduce_sum(- self.prior_sigma * self.prior_mu + self.prior_sigma * (x_mu + (1.0 / (tf.exp(x_log_sigma)))) - tf.log(self.prior_sigma) - \
-                1 + x_log_sigma, axis=1)
+            #kld = - tf.reduce_sum(- self.prior_sigma * self.prior_mu + self.prior_sigma * (x_mu + (1.0 / (tf.exp(x_log_sigma)))) - tf.log(self.prior_sigma) - \
+            #    1 + x_log_sigma, axis=1)
+            # From this magical document http://ai2-s2-pdfs.s3.amazonaws.com/a6cd/bafcecbdea079d41f415ae43ef079fcf8156.pdf
+            kld = tf.reduce_sum(tf.log(self.prior_sigma) - x_log_sigma + tf.abs(x_mu - self.prior_mu) / self.prior_sigma + \
+                                  (tf.exp(x_log_sigma)/self.prior_sigma) * tf.exp(- tf.abs(x_mu - self.prior_mu) / tf.exp(x_log_sigma)) - 1, axis=1)
 
         elif self.prior_distr == "beta":
             kld = - tf.reduce_sum(tf.log(self.prior_mu) - tf.log(self.prior_sigma) - tf.log(x_mu) 

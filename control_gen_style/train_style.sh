@@ -25,7 +25,7 @@ dropout_keep_prob=0.75
 # prior: normal, laplace
 # laplace: mu = mu, sigma = lambda 
 prior_distr='laplace'
-prior_mu=2.0
+prior_mu=0.0
 prior_sigma=1.0
 
 # data

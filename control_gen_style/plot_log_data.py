@@ -7,18 +7,26 @@ import matplotlib.pyplot as plt
 n01 = ("Normal(0,1)", "results/normal_0_1_45578047-85c4-46a2-acbd-c4cb95021a8e.ctrl_style/log.txt")
 n02 = ("Normal(0,2)", "results/normal_0_2_2e735956-6b65-4e03-9c42-2d6c2c0c1f55.ctrl_style/log.txt")
 
-n01_onoff = ("Normal(0,1) onoff", "results/n_0_1_onoff_fbc49bce-2896-412a-bb29-28ceddefbf2f.ctrl_style/log.txt")
-n01_oscillate = ("Normal(0,1) oscillate", "results/n_0_1_oscillate_393c0595-ece0-4440-9517-cc8d73d6b888.ctrl_style/log.txt")
-n01_sigmoid = ("Normal(0,1) sigmoid", "results/n_0_1_sigmoid_a1859a6e-c75f-4021-8a08-65f719656982.ctrl_style/log.txt")
-n01_constant1 = ("Normal(0,1) constant=1", "results/n_0_1_constant1_4de4b5bc-f31f-4068-981e-d657d37b7ac1.ctrl_style/log.txt")
-n01_constant0909 = ("Normal(0,1) constant=0.0909", "results/n_0_1_constant0909_48e71d28-93d8-47ea-8f6f-936276e4147d.ctrl_style/log.txt")
+n01_onoff_bad = ("Normal(0,1) onoff badkl", "results/badkl_n_0_1_onoff_fbc49bce-2896-412a-bb29-28ceddefbf2f.ctrl_style/log.txt")
+n01_oscillate = ("Normal(0,1) oscillate badkl", "results/badkl_n_0_1_oscillate_393c0595-ece0-4440-9517-cc8d73d6b888.ctrl_style/log.txt")
+n01_sigmoid_bad = ("Normal(0,1) sigmoid badkl", "results/badkl_n_0_1_sigmoid_a1859a6e-c75f-4021-8a08-65f719656982.ctrl_style/log.txt")
+n01_constant1_bad = ("Normal(0,1) constant=1 badkl", "results/badkl_n_0_1_constant1_4de4b5bc-f31f-4068-981e-d657d37b7ac1.ctrl_style/log.txt")
+n01_constant0909_bad = ("Normal(0,1) constant=0.0909 badkl", "results/badkl_n_0_1_constant0909_48e71d28-93d8-47ea-8f6f-936276e4147d.ctrl_style/log.txt")
+
+laplace01 = ("Laplace(0,1)", "results/laplace_0_1_f6dbc700-3e9b-418d-9489-e6cca9b908d4.ctrl_style/log.txt")
+
+n01_constant1 = ("Normal(0,1) constant=1", "results/n_0_1_constant1_7c3e41d9-9bea-4602-bd15-015beadf42ef.ctrl_style/log.txt")
+n01_constant0909 = ("Normal(0,1) constant=0.0909", "results/n_0_1_constant0909_repeat_12e32536-14fa-4e2a-87de-5ac947db1890.ctrl_style/log.txt")
+n01_sigmoid = ("Normal(0,1) sigmoid", "results/n_0_1_sigmoid_583da925-e703-489a-b465-a2e5c899ac16.ctrl_style/log.txt")
+n01_onoff_early = ("Normal(0,1) onoff ended early", "results/n_0_1_onoff_early_8fb86069-66d0-4810-a62e-8badb87611cb.ctrl_style/log.txt")
+n01_oscillate0909_early = ("Normal(0,1) oscillate ended early", "results/n_0_1_oscillate_0909_c1c819ad-2970-4fb7-bd21-f9f26118d4d9.ctrl_style/log.txt")
 
 b12 = ("Beta(1,2)", "results/beta_1_2_6ea98694-8d14-4049-aca0-20cb9f149564.ctrl_style/log.txt")
 e12 = ("Exp(1,2)", "results/exp_1_2_8dca0bb8-cf87-4f79-b2e2-1b14b678cd4d.ctrl_style/log.txt")
 
 
 # Modify this to change what is plotted
-exps_to_plot = [n01, n02, n01_onoff, n01_oscillate, n01_sigmoid, n01_constant1, n01_constant0909]
+exps_to_plot = [n01, n02, laplace01, n01_constant0909, n01_onoff_early, n01_oscillate0909_early]
 
 
 
@@ -33,6 +41,8 @@ def plot_log_data(log_file_name):
     kld_list = []
     ind_loss_list = []
     style_recon_loss_list = []
+
+    print("Reading ", log_file_name)
 
     with open(log_file_name, "r") as log_file:
 
@@ -50,8 +60,8 @@ def plot_log_data(log_file_name):
         	# print(i)
         	i += 1
 
-        	if len(style_loss_list) > 400:
-        		break
+        	# if len(style_loss_list) > 400:
+        	# 	break
 
 	        style_loss = re.findall(style_loss_re, line)
 	        if not len(style_loss) > 0: # Continue for the lines which don't have the losses printed on them
@@ -62,7 +72,7 @@ def plot_log_data(log_file_name):
 	        pt_loss = re.findall(pt_loss_re, line)[0]
 	        recon_loss = re.findall(recon_loss_re, line)[0]
 	        kld = re.findall(kld_re, line)[0]
-	        ind_loss = re.findall(ind_loss_re, line)[0]
+        	ind_loss = re.findall(ind_loss_re, line)[0]
 	        style_recon_loss = re.findall(style_recon_loss_re, line)[0]
 
 	        # print("recons: ", recon_loss)
@@ -118,6 +128,7 @@ style_recon_loss_ind = 6
 def recon_loss_plot(results_dict):
 
 	for (distr, results) in results_dict.items():
+		print(len(results[recon_loss_ind]))
 		plt.plot(results[recon_loss_ind], label=distr)
 
 	plt.xlabel("Iterations")

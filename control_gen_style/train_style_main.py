@@ -192,16 +192,18 @@ def main(_):
 
                 curr_x_pos = e + (float(b) / num_batches) # x position on the graph
                 if FLAGS.kld_anneal_method == "constant":
-                    kld_w = 1.0 # Always present 0.0909
+                    kld_w = 0.0909
                 elif FLAGS.kld_anneal_method == "sigmoid":
-                    kld_w = -1.0 / (1 + np.exp(0.2 * (curr_x_pos - FLAGS.nepochs / 2))) + 1
+                    max_height = 0.0909
+                    kld_w = -max_height / (1 + np.exp(0.3 * (curr_x_pos - FLAGS.nepochs / 2))) + max_height
                 elif FLAGS.kld_anneal_method == "onoff":
-                    kld_w = 0.0 if kld_w == 1.0 else 1.0
+                    kld_w = 0.0 if kld_w == 0.0909 else 0.0909
                 elif FLAGS.kld_anneal_method == "oscillate":
+                    max_height = 0.0909
                     # 10 chosen as the frequency of the sin curve to get a nice oscillation frequency
-                    kld_w = (1.0 / FLAGS.nepochs) * curr_x_pos + (1.0 / FLAGS.nepochs) * curr_x_pos * np.sin(10 * curr_x_pos)
-                    if kld_w > 1.0: # Limit ceiling 
-                        kld_w = 1.0 
+                    kld_w = (max_height / FLAGS.nepochs) * curr_x_pos + (max_height / FLAGS.nepochs) * curr_x_pos * np.sin(10 * curr_x_pos)
+                    if kld_w > max_height: # Limit ceiling 
+                        kld_w = max_height 
                     print("curr x pos for oscillation: ", curr_x_pos)
                 else:
                     raise Exception("Invalid kld anneal method")
